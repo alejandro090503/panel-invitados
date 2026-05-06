@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 export type EstadoInvitado = 'pendiente' | 'confirmó' | 'declinó'
 
@@ -11,7 +11,21 @@ export interface Invitado {
   created_at: string
 }
 
-const url  = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? ''
-const key  = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+// Lazy singleton — evita que el SDK falle durante el pre-render estático
+// cuando las variables de entorno no están presentes en build time.
+let _client: SupabaseClient | null = null
 
-export const supabase = createClient(url, key)
+export function getSupabase(): SupabaseClient {
+  if (!_client) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? 'https://placeholder.supabase.co'
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder'
+    _client = createClient(url, key)
+  }
+  return _client
+}
+
+export const supabase = {
+  get from() { return getSupabase().from.bind(getSupabase()) },
+  get channel() { return getSupabase().channel.bind(getSupabase()) },
+  get removeChannel() { return getSupabase().removeChannel.bind(getSupabase()) },
+}
