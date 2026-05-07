@@ -10,15 +10,15 @@ interface Props {
 }
 
 const BADGE: Record<EstadoInvitado, string> = {
-  pendiente: 'badge-pendiente',
-  confirmó:  'badge-confirmó',
-  declinó:   'badge-declinó',
+  pendiente:  'badge-pendiente',
+  confirmado: 'badge-confirmado',
+  declino:    'badge-declino',
 }
 
 const LABEL: Record<EstadoInvitado, string> = {
-  pendiente: 'Pendiente',
-  confirmó:  'Confirmó',
-  declinó:   'Declinó',
+  pendiente:  'Pendiente',
+  confirmado: 'Confirmado',
+  declino:    'Declinó',
 }
 
 export function GuestCard({ invitado, onDeleted }: Props) {
@@ -63,7 +63,7 @@ export function GuestCard({ invitado, onDeleted }: Props) {
             <Users size={11} strokeWidth={2} />
             {invitado.pases} {invitado.pases === 1 ? 'pase' : 'pases'}
           </span>
-          {invitado.estado === 'confirmó' && (
+          {invitado.estado === 'confirmado' && (
             <span className="flex items-center gap-1 text-xs" style={{ color: '#059669' }}>
               <UserCheck size={11} strokeWidth={2} />
               {confirmados} de {invitado.pases} asisten

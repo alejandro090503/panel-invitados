@@ -42,9 +42,9 @@ body {
 
 :focus-visible { outline: 2px solid #9E0059; outline-offset: 2px; }
 
-.badge-pendiente  { background: rgba(251,191,36,.14);  color: #78350F; border: 1px solid rgba(251,191,36,.32); }
-.badge-confirmó   { background: rgba(52,211,153,.14);  color: #064E3B; border: 1px solid rgba(52,211,153,.32); }
-.badge-declinó    { background: rgba(239,68,68,.11);   color: #7F1D1D; border: 1px solid rgba(239,68,68,.24); }
+.badge-pendiente   { background: rgba(251,191,36,.14);  color: #78350F; border: 1px solid rgba(251,191,36,.32); }
+.badge-confirmado  { background: rgba(52,211,153,.14);  color: #064E3B; border: 1px solid rgba(52,211,153,.32); }
+.badge-declino     { background: rgba(239,68,68,.11);   color: #7F1D1D; border: 1px solid rgba(239,68,68,.24); }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }

@@ -13,7 +13,7 @@ interface Props {
 export function GuestList({ urlBoda }: Props) {
   const [invitados, setInvitados] = useState<Invitado[]>([])
   const [loading, setLoading]     = useState(true)
-  const [filter, setFilter]       = useState<'todos' | 'pendiente' | 'confirmó' | 'declinó'>('todos')
+  const [filter, setFilter]       = useState<'todos' | 'pendiente' | 'confirmado' | 'declino'>('todos')
 
   const fetchInvitados = useCallback(async () => {
     const { data } = await supabase
@@ -49,8 +49,8 @@ export function GuestList({ urlBoda }: Props) {
   const filters: Array<{ key: typeof filter; label: string }> = [
     { key: 'todos',     label: 'Todos'      },
     { key: 'pendiente', label: 'Pendientes' },
-    { key: 'confirmó',  label: 'Confirmados'},
-    { key: 'declinó',   label: 'Declinaron' },
+    { key: 'confirmado',  label: 'Confirmados'},
+    { key: 'declino',   label: 'Declinaron' },
   ]
 
   return (

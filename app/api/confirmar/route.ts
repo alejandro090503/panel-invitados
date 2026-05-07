@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'JSON inválido' }, { status: 400, headers: CORS_HEADERS })
   }
 
-  const { nombre, estado = 'confirmó', pases_confirmados, url_boda } = body
+  const { nombre, estado = 'confirmado', pases_confirmados, url_boda } = body
 
   if (!nombre) {
     return Response.json({ error: 'nombre es requerido' }, { status: 400, headers: CORS_HEADERS })

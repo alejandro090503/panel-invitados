@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-export type EstadoInvitado = 'pendiente' | 'confirmó' | 'declinó'
+export type EstadoInvitado = 'pendiente' | 'confirmado' | 'declino'
 
 export interface Boda {
   id: string

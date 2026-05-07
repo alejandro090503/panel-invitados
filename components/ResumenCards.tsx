@@ -8,12 +8,12 @@ interface Props {
 
 export function ResumenCards({ invitados }: Props) {
   const invitaciones     = invitados.length
-  const confirmadas      = invitados.filter(i => i.estado === 'confirmó').length
+  const confirmadas      = invitados.filter(i => i.estado === 'confirmado').length
   const pendientes       = invitados.filter(i => i.estado === 'pendiente').length
-  const declinadas       = invitados.filter(i => i.estado === 'declinó').length
+  const declinadas       = invitados.filter(i => i.estado === 'declino').length
   const pasesEnviados    = invitados.reduce((s, i) => s + i.pases, 0)
   const personasConfirmadas = invitados
-    .filter(i => i.estado === 'confirmó')
+    .filter(i => i.estado === 'confirmado')
     .reduce((s, i) => s + (i.pases_confirmados || i.pases), 0)
 
   const cards = [

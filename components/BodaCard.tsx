@@ -25,7 +25,7 @@ export function BodaCard({ boda, onDeleted }: Props) {
       const invitados = data as Pick<Invitado, 'estado'>[]
       setStats({
         total: invitados.length,
-        confirmados: invitados.filter(i => i.estado === 'confirmó').length,
+        confirmados: invitados.filter(i => i.estado === 'confirmado').length,
         pendientes: invitados.filter(i => i.estado === 'pendiente').length,
       })
     }
