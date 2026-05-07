@@ -19,26 +19,36 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
     const nombreTrimmed = nombre.trim()
     if (!nombreTrimmed) return
 
+    const safePases = Math.max(1, Math.floor(pases) || 1)
+
     setLoading(true)
     setError('')
 
-    const { error: sbError } = await supabase.from('invitados').insert({
-      nombre: nombreTrimmed,
-      pases,
-      estado: 'pendiente',
-      url_boda: urlBoda.trim().replace(/\/+$/, ''),
-    })
+    try {
+      const { error: sbError } = await supabase.from('invitados').insert({
+        nombre: nombreTrimmed,
+        pases: safePases,
+        pases_confirmados: 0,
+        estado: 'pendiente',
+        url_boda: urlBoda.trim().replace(/\/+$/, ''),
+      })
 
-    if (sbError) {
-      setError('Error al guardar. Intenta de nuevo.')
+      if (sbError) {
+        console.error('Supabase insert error:', sbError)
+        setError(`Error al guardar: ${sbError.message}`)
+        setLoading(false)
+        return
+      }
+
+      setNombre('')
+      setPases(1)
       setLoading(false)
-      return
+      onAdded()
+    } catch (err) {
+      console.error('Insert exception:', err)
+      setError('Error de conexión. Verifica tu internet e intenta de nuevo.')
+      setLoading(false)
     }
-
-    setNombre('')
-    setPases(1)
-    setLoading(false)
-    onAdded()
   }
 
   return (

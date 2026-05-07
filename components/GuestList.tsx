@@ -16,11 +16,16 @@ export function GuestList({ urlBoda }: Props) {
   const [filter, setFilter]       = useState<'todos' | 'pendiente' | 'confirmado' | 'declino'>('todos')
 
   const fetchInvitados = useCallback(async () => {
-    const { data } = await supabase
+    const normalizedUrl = urlBoda.trim().replace(/\/+$/, '')
+    const { data, error } = await supabase
       .from('invitados')
       .select('*')
-      .eq('url_boda', urlBoda)
+      .eq('url_boda', normalizedUrl)
       .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Fetch invitados error:', error)
+    }
     setInvitados((data as Invitado[]) ?? [])
     setLoading(false)
   }, [urlBoda])
@@ -29,13 +34,14 @@ export function GuestList({ urlBoda }: Props) {
     fetchInvitados()
 
     // Tiempo real — escucha cambios en la tabla
+    const normalizedUrl = urlBoda.trim().replace(/\/+$/, '')
     const channel = supabase
-      .channel('invitados-realtime')
+      .channel(`invitados-${normalizedUrl}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'invitados',
-        filter: `url_boda=eq.${urlBoda}`,
+        filter: `url_boda=eq.${normalizedUrl}`,
       }, () => {
         fetchInvitados()
       })
@@ -57,7 +63,7 @@ export function GuestList({ urlBoda }: Props) {
     <div className="space-y-6">
       <ResumenCards invitados={invitados} />
 
-      <AddGuestForm urlBoda={urlBoda} onAdded={fetchInvitados} />
+      <AddGuestForm urlBoda={urlBoda.trim().replace(/\/+$/, '')} onAdded={fetchInvitados} />
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar invitaciones">
