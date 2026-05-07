@@ -3,24 +3,25 @@ import { useState, useRef } from 'react'
 import { Eye, EyeOff, Lock } from 'lucide-react'
 
 interface Props {
+  nombrePareja: string
+  password: string
+  slug: string
   onSuccess: () => void
 }
 
-export function PasswordGate({ onSuccess }: Props) {
+export function PasswordGate({ nombrePareja, password, slug, onSuccess }: Props) {
   const [value, setValue] = useState('')
   const [show, setShow] = useState(false)
   const [error, setError] = useState(false)
   const [loading, setLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const PASS = (process.env.NEXT_PUBLIC_PANEL_PASSWORD ?? 'elysium2026').trim()
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     await new Promise(r => setTimeout(r, 400))
-    if (value === PASS) {
-      sessionStorage.setItem('panel_auth', '1')
+    if (value === password.trim()) {
+      sessionStorage.setItem(`panel_auth_${slug}`, '1')
       onSuccess()
     } else {
       setError(true)
@@ -34,7 +35,6 @@ export function PasswordGate({ onSuccess }: Props) {
   return (
     <div className="min-h-dvh flex items-center justify-center px-4">
       <div className="glass rounded-3xl p-10 w-full max-w-sm animate-in">
-        {/* Logo / encabezado */}
         <div className="text-center mb-8">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -43,10 +43,10 @@ export function PasswordGate({ onSuccess }: Props) {
             <Lock size={22} color="white" strokeWidth={1.8} />
           </div>
           <h1 className="text-2xl font-semibold tracking-wide" style={{ color: '#9E0059' }}>
-            Panel de Invitados
+            {nombrePareja}
           </h1>
           <p className="text-sm mt-1" style={{ color: '#6B7280' }}>
-            Elysium Invitaciones
+            Panel de Invitados
           </p>
         </div>
 

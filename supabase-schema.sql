@@ -1,6 +1,23 @@
--- Tabla invitados
--- Ejecutar en: Supabase > SQL Editor
+-- ============================================
+-- Panel de Invitados — Elysium Invitaciones
+-- Multi-tenant: una tabla bodas + una tabla invitados
+-- ============================================
 
+-- Tabla bodas (config por cliente)
+create table if not exists bodas (
+  id         uuid primary key default gen_random_uuid(),
+  slug       text unique not null,
+  nombre     text not null,
+  url_boda   text not null,
+  password   text not null default 'elysium2026',
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists idx_bodas_slug on bodas (slug);
+alter table bodas enable row level security;
+create policy "Lectura pública bodas" on bodas for select using (true);
+
+-- Tabla invitados
 create table if not exists invitados (
   id         uuid primary key default gen_random_uuid(),
   nombre     text not null,
@@ -11,31 +28,18 @@ create table if not exists invitados (
   created_at timestamptz not null default now()
 );
 
--- Índice para filtrar por boda
 create index if not exists idx_invitados_url_boda on invitados (url_boda);
-
--- Habilitar Row Level Security
 alter table invitados enable row level security;
+create policy "Lectura pública" on invitados for select using (true);
+create policy "Inserción pública" on invitados for insert with check (true);
+create policy "Actualización pública" on invitados for update using (true);
+create policy "Eliminación pública" on invitados for delete using (true);
 
--- Política: lectura pública (panel usa anon key)
-create policy "Lectura pública"
-  on invitados for select
-  using (true);
+-- Habilitar Realtime
+-- alter publication supabase_realtime add table invitados;
 
--- Política: inserción pública (el panel agrega invitados)
-create policy "Inserción pública"
-  on invitados for insert
-  with check (true);
-
--- Política: actualización pública (confirmar desde la invitación)
-create policy "Actualización pública"
-  on invitados for update
-  using (true);
-
--- Política: eliminación pública (el panel puede borrar)
-create policy "Eliminación pública"
-  on invitados for delete
-  using (true);
-
--- Habilitar Realtime para esta tabla
--- (hacerlo también desde: Supabase > Database > Replication > invitados ON)
+-- ============================================
+-- Para agregar una nueva boda:
+-- insert into bodas (slug, nombre, url_boda, password)
+-- values ('carlos-victoria', 'Carlos & Victoria', 'https://boda-carlos-victoria.vercel.app', 'micontraseña123');
+-- ============================================

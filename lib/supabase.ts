@@ -2,6 +2,15 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 export type EstadoInvitado = 'pendiente' | 'confirmó' | 'declinó'
 
+export interface Boda {
+  id: string
+  slug: string
+  nombre: string
+  url_boda: string
+  password: string
+  created_at: string
+}
+
 export interface Invitado {
   id: string
   nombre: string
@@ -11,8 +20,6 @@ export interface Invitado {
   created_at: string
 }
 
-// Lazy singleton — evita que el SDK falle durante el pre-render estático
-// cuando las variables de entorno no están presentes en build time.
 let _client: SupabaseClient | null = null
 
 export function getSupabase(): SupabaseClient {
