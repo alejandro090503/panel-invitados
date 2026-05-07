@@ -45,14 +45,14 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
     <form onSubmit={handleSubmit} noValidate className="glass rounded-2xl p-5">
       <h2 className="text-base font-semibold mb-4 flex items-center gap-2" style={{ color: '#9E0059' }}>
         <UserPlus size={18} strokeWidth={1.8} />
-        Agregar invitado
+        Nueva invitación
       </h2>
 
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Nombre */}
         <div className="flex-1">
           <label htmlFor="nombre" className="block text-xs font-medium mb-1" style={{ color: '#4B5563' }}>
-            Nombre completo
+            Nombre o familia
           </label>
           <input
             id="nombre"
@@ -60,7 +60,7 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
             value={nombre}
             onChange={e => setNombre(e.target.value)}
             required
-            placeholder="Ej. Ana García"
+            placeholder="Ej. Familia Pérez"
             autoComplete="off"
             className="
               w-full rounded-xl px-4 py-2.5 text-sm

@@ -12,7 +12,12 @@ export async function POST(req: NextRequest) {
   const supabaseKey  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
   const supabase     = createClient(supabaseUrl, supabaseKey)
 
-  let body: { nombre?: string; estado?: string; url_boda?: string }
+  let body: {
+    nombre?: string
+    estado?: string
+    pases_confirmados?: number
+    url_boda?: string
+  }
 
   try {
     body = await req.json()
@@ -20,15 +25,21 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'JSON inválido' }, { status: 400, headers: CORS_HEADERS })
   }
 
-  const { nombre, estado = 'confirmó', url_boda } = body
+  const { nombre, estado = 'confirmó', pases_confirmados, url_boda } = body
 
   if (!nombre) {
     return Response.json({ error: 'nombre es requerido' }, { status: 400, headers: CORS_HEADERS })
   }
 
+  // Construir objeto de actualización
+  const updateData: Record<string, unknown> = { estado }
+  if (typeof pases_confirmados === 'number' && pases_confirmados > 0) {
+    updateData.pases_confirmados = pases_confirmados
+  }
+
   let query = supabase
     .from('invitados')
-    .update({ estado })
+    .update(updateData)
     .ilike('nombre', nombre.trim())
 
   if (url_boda) {
@@ -41,7 +52,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: error.message }, { status: 500, headers: CORS_HEADERS })
   }
 
-  return Response.json({ ok: true, estado }, { headers: CORS_HEADERS })
+  return Response.json({ ok: true, estado, pases_confirmados }, { headers: CORS_HEADERS })
 }
 
 export async function OPTIONS() {

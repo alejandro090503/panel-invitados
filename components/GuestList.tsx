@@ -60,7 +60,7 @@ export function GuestList({ urlBoda }: Props) {
       <AddGuestForm urlBoda={urlBoda} onAdded={fetchInvitados} />
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar invitados">
+      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar invitaciones">
         {filters.map(f => (
           <button
             key={f.key}
@@ -84,7 +84,7 @@ export function GuestList({ urlBoda }: Props) {
 
       {/* Lista */}
       {loading ? (
-        <div className="space-y-3" aria-busy="true" aria-label="Cargando invitados">
+        <div className="space-y-3" aria-busy="true" aria-label="Cargando invitaciones">
           {[1,2,3].map(i => (
             <div key={i} className="h-16 rounded-2xl bg-white/40 animate-pulse" />
           ))}
@@ -93,16 +93,16 @@ export function GuestList({ urlBoda }: Props) {
         <div className="text-center py-14" role="status">
           <p className="text-3xl mb-3">💌</p>
           <p className="text-sm font-medium" style={{ color: '#9E0059' }}>
-            {filter === 'todos' ? 'Aún no hay invitados' : 'Sin invitados en este filtro'}
+            {filter === 'todos' ? 'Aún no hay invitaciones' : 'Sin invitaciones en este filtro'}
           </p>
           {filter === 'todos' && (
             <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
-              Usa el formulario de arriba para agregar el primero.
+              Usa el formulario de arriba para agregar la primera.
             </p>
           )}
         </div>
       ) : (
-        <div className="space-y-2.5" aria-label="Lista de invitados">
+        <div className="space-y-2.5" aria-label="Lista de invitaciones">
           {filtered.map(inv => (
             <GuestCard key={inv.id} invitado={inv} onDeleted={fetchInvitados} />
           ))}

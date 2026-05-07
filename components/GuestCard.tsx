@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Copy, Check, Trash2, Users } from 'lucide-react'
+import { Copy, Check, Trash2, Users, UserCheck } from 'lucide-react'
 import type { Invitado, EstadoInvitado } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 
@@ -17,7 +17,7 @@ const BADGE: Record<EstadoInvitado, string> = {
 
 const LABEL: Record<EstadoInvitado, string> = {
   pendiente: 'Pendiente',
-  confirmó:  'Confirmó ✓',
+  confirmó:  'Confirmó',
   declinó:   'Declinó',
 }
 
@@ -34,11 +34,13 @@ export function GuestCard({ invitado, onDeleted }: Props) {
   }
 
   async function deleteGuest() {
-    if (!confirm(`¿Eliminar a ${invitado.nombre}?`)) return
+    if (!confirm(`¿Eliminar la invitación de ${invitado.nombre}?`)) return
     setDeleting(true)
     await supabase.from('invitados').delete().eq('id', invitado.id)
     onDeleted()
   }
+
+  const confirmados = invitado.pases_confirmados || 0
 
   return (
     <div className="glass-sm rounded-2xl px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 animate-in">
@@ -56,11 +58,17 @@ export function GuestCard({ invitado, onDeleted }: Props) {
         <p className="font-semibold text-sm truncate" style={{ color: '#1F1F2E' }}>
           {invitado.nombre}
         </p>
-        <div className="flex items-center gap-2 mt-0.5">
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="flex items-center gap-1 text-xs" style={{ color: '#6B7280' }}>
             <Users size={11} strokeWidth={2} />
             {invitado.pases} {invitado.pases === 1 ? 'pase' : 'pases'}
           </span>
+          {invitado.estado === 'confirmó' && (
+            <span className="flex items-center gap-1 text-xs" style={{ color: '#059669' }}>
+              <UserCheck size={11} strokeWidth={2} />
+              {confirmados} de {invitado.pases} asisten
+            </span>
+          )}
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${BADGE[invitado.estado]}`}>
             {LABEL[invitado.estado]}
           </span>
@@ -99,8 +107,8 @@ export function GuestCard({ invitado, onDeleted }: Props) {
         <button
           onClick={deleteGuest}
           disabled={deleting}
-          aria-label={`Eliminar a ${invitado.nombre}`}
-          title="Eliminar invitado"
+          aria-label={`Eliminar invitación de ${invitado.nombre}`}
+          title="Eliminar invitación"
           className="
             p-2 rounded-xl transition-all duration-200 active:scale-95
             text-gray-400 hover:text-red-500

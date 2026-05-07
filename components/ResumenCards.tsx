@@ -1,5 +1,5 @@
 'use client'
-import { Users, CheckCircle2, Clock, XCircle, Ticket } from 'lucide-react'
+import { Mail, CheckCircle2, Clock, XCircle, Ticket, UserCheck } from 'lucide-react'
 import type { Invitado } from '@/lib/supabase'
 
 interface Props {
@@ -7,18 +7,21 @@ interface Props {
 }
 
 export function ResumenCards({ invitados }: Props) {
-  const total        = invitados.length
-  const confirmados  = invitados.filter(i => i.estado === 'confirmó').length
-  const pendientes   = invitados.filter(i => i.estado === 'pendiente').length
-  const declinados   = invitados.filter(i => i.estado === 'declinó').length
-  const totalPases   = invitados.filter(i => i.estado !== 'declinó').reduce((s, i) => s + i.pases, 0)
+  const invitaciones     = invitados.length
+  const confirmadas      = invitados.filter(i => i.estado === 'confirmó').length
+  const pendientes       = invitados.filter(i => i.estado === 'pendiente').length
+  const declinadas       = invitados.filter(i => i.estado === 'declinó').length
+  const pasesEnviados    = invitados.reduce((s, i) => s + i.pases, 0)
+  const personasConfirmadas = invitados
+    .filter(i => i.estado === 'confirmó')
+    .reduce((s, i) => s + (i.pases_confirmados || i.pases), 0)
 
   const cards = [
-    { label: 'Invitados',     value: total,       icon: Users,        color: '#9E0059',  bg: 'rgba(158,0,89,.08)'   },
-    { label: 'Confirmados',   value: confirmados,  icon: CheckCircle2, color: '#059669',  bg: 'rgba(5,150,105,.08)'  },
-    { label: 'Pendientes',    value: pendientes,   icon: Clock,        color: '#D97706',  bg: 'rgba(217,119,6,.08)'  },
-    { label: 'Declinaron',    value: declinados,   icon: XCircle,      color: '#DC2626',  bg: 'rgba(220,38,38,.08)'  },
-    { label: 'Pases totales', value: totalPases,   icon: Ticket,       color: '#7C3AED',  bg: 'rgba(124,58,237,.08)' },
+    { label: 'Invitaciones',         value: invitaciones,        icon: Mail,        color: '#9E0059',  bg: 'rgba(158,0,89,.08)'   },
+    { label: 'Pases enviados',       value: pasesEnviados,       icon: Ticket,      color: '#7C3AED',  bg: 'rgba(124,58,237,.08)' },
+    { label: 'Personas confirmadas', value: personasConfirmadas, icon: UserCheck,   color: '#059669',  bg: 'rgba(5,150,105,.08)'  },
+    { label: 'Pendientes',           value: pendientes,          icon: Clock,       color: '#D97706',  bg: 'rgba(217,119,6,.08)'  },
+    { label: 'Declinaron',           value: declinadas,          icon: XCircle,     color: '#DC2626',  bg: 'rgba(220,38,38,.08)'  },
   ]
 
   return (
