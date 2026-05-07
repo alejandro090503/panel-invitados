@@ -13,7 +13,7 @@ export function PasswordGate({ onSuccess }: Props) {
   const [loading, setLoading] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const PASS = process.env.NEXT_PUBLIC_PANEL_PASSWORD ?? 'elysium2026'
+  const PASS = (process.env.NEXT_PUBLIC_PANEL_PASSWORD ?? 'elysium2026').trim()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
