@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     nombre?: string
     estado?: string
     pases_confirmados?: number
+    nombres_confirmados?: string[]
     url_boda?: string
   }
 
@@ -29,7 +30,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'JSON inválido' }, { status: 400, headers: CORS_HEADERS })
   }
 
-  const { nombre, estado = 'confirmado', pases_confirmados, url_boda } = body
+  const { nombre, estado = 'confirmado', pases_confirmados, nombres_confirmados, url_boda } = body
 
   if (!nombre) {
     return Response.json({ error: 'nombre es requerido' }, { status: 400, headers: CORS_HEADERS })
@@ -38,6 +39,11 @@ export async function POST(req: NextRequest) {
   const updateData: Record<string, unknown> = { estado }
   if (typeof pases_confirmados === 'number') {
     updateData.pases_confirmados = pases_confirmados
+  }
+  if (Array.isArray(nombres_confirmados)) {
+    updateData.nombres_confirmados = nombres_confirmados
+      .map(n => (typeof n === 'string' ? n.trim() : ''))
+      .filter(n => n.length > 0)
   }
 
   // Buscar por nombre (case-insensitive, trimmed)

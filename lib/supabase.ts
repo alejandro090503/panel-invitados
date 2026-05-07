@@ -16,6 +16,7 @@ export interface Invitado {
   nombre: string
   pases: number
   pases_confirmados: number
+  nombres_confirmados: string[] | null
   estado: EstadoInvitado
   url_boda: string
   created_at: string

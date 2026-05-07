@@ -5,12 +5,14 @@ import type { Invitado } from '@/lib/supabase'
 import { GuestCard } from './GuestCard'
 import { ResumenCards } from './ResumenCards'
 import { AddGuestForm } from './AddGuestForm'
+import { ListaConfirmados } from './ListaConfirmados'
 
 interface Props {
   urlBoda: string
+  nombreBoda: string
 }
 
-export function GuestList({ urlBoda }: Props) {
+export function GuestList({ urlBoda, nombreBoda }: Props) {
   const [invitados, setInvitados] = useState<Invitado[]>([])
   const [loading, setLoading]     = useState(true)
   const [filter, setFilter]       = useState<'todos' | 'pendiente' | 'confirmado' | 'declino'>('todos')
@@ -64,6 +66,8 @@ export function GuestList({ urlBoda }: Props) {
       <ResumenCards invitados={invitados} />
 
       <AddGuestForm urlBoda={urlBoda.trim().replace(/\/+$/, '')} onAdded={fetchInvitados} />
+
+      <ListaConfirmados invitados={invitados} nombreBoda={nombreBoda} />
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar invitaciones">

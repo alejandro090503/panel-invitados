@@ -90,7 +90,7 @@ export default function PanelBoda() {
       </div>
 
       <div className="max-w-4xl mx-auto">
-        <GuestList urlBoda={boda.url_boda} />
+        <GuestList urlBoda={boda.url_boda} nombreBoda={boda.nombre} />
       </div>
 
       <p className="text-center text-xs mt-10" style={{ color: '#D1D5DB' }}>
