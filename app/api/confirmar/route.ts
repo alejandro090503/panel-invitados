@@ -7,6 +7,10 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
+function normalizeUrl(url: string): string {
+  return url.trim().replace(/\/+$/, '')
+}
+
 export async function POST(req: NextRequest) {
   const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? ''
   const supabaseKey  = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
@@ -31,19 +35,19 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'nombre es requerido' }, { status: 400, headers: CORS_HEADERS })
   }
 
-  // Construir objeto de actualización
   const updateData: Record<string, unknown> = { estado }
   if (typeof pases_confirmados === 'number') {
     updateData.pases_confirmados = pases_confirmados
   }
 
+  // Buscar por nombre (case-insensitive, trimmed)
   let query = supabase
     .from('invitados')
     .update(updateData)
     .ilike('nombre', nombre.trim())
 
   if (url_boda) {
-    query = query.eq('url_boda', url_boda)
+    query = query.eq('url_boda', normalizeUrl(url_boda))
   }
 
   const { error } = await query

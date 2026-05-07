@@ -48,7 +48,7 @@ export function NewBodaForm({ onCreated }: Props) {
     const { error: sbError } = await supabase.from('bodas').insert({
       slug,
       nombre: nombreTrimmed,
-      url_boda: urlTrimmed,
+      url_boda: urlTrimmed.replace(/\/+$/, ''),
       password,
     })
 

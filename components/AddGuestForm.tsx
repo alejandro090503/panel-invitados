@@ -26,7 +26,7 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
       nombre: nombreTrimmed,
       pases,
       estado: 'pendiente',
-      url_boda: urlBoda,
+      url_boda: urlBoda.trim().replace(/\/+$/, ''),
     })
 
     if (sbError) {
