@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   // Construir objeto de actualización
   const updateData: Record<string, unknown> = { estado }
-  if (typeof pases_confirmados === 'number' && pases_confirmados > 0) {
+  if (typeof pases_confirmados === 'number') {
     updateData.pases_confirmados = pases_confirmados
   }
 
