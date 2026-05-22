@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server'
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 }
 
@@ -63,6 +63,37 @@ export async function POST(req: NextRequest) {
   }
 
   return Response.json({ ok: true, estado, pases_confirmados }, { headers: CORS_HEADERS })
+}
+
+export async function GET(req: NextRequest) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? ''
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+  const supabase    = createClient(supabaseUrl, supabaseKey)
+
+  const url     = new URL(req.url)
+  const nombre  = url.searchParams.get('nombre')
+  const urlBoda = url.searchParams.get('url_boda')
+
+  if (!nombre || !urlBoda) {
+    return Response.json(
+      { error: 'nombre y url_boda son requeridos' },
+      { status: 400, headers: CORS_HEADERS }
+    )
+  }
+
+  const { data, error } = await supabase
+    .from('invitados')
+    .select('nombre,estado,pases,pases_confirmados,nombres_confirmados')
+    .ilike('nombre', nombre.trim())
+    .eq('url_boda', normalizeUrl(urlBoda))
+    .limit(1)
+    .maybeSingle()
+
+  if (error) {
+    return Response.json({ error: error.message }, { status: 500, headers: CORS_HEADERS })
+  }
+
+  return Response.json({ ok: true, invitado: data ?? null }, { headers: CORS_HEADERS })
 }
 
 export async function OPTIONS() {
