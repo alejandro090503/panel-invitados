@@ -55,10 +55,10 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
   const filtered = filter === 'todos' ? invitados : invitados.filter(i => i.estado === filter)
 
   const filters: Array<{ key: typeof filter; label: string }> = [
-    { key: 'todos',     label: 'Todos'      },
-    { key: 'pendiente', label: 'Pendientes' },
-    { key: 'confirmado',  label: 'Confirmados'},
-    { key: 'declino',   label: 'Declinaron' },
+    { key: 'todos',     label: 'Todas'       },
+    { key: 'pendiente', label: 'Pendientes'  },
+    { key: 'confirmado',label: 'Confirmadas' },
+    { key: 'declino',   label: 'Declinaron'  },
   ]
 
   return (
@@ -76,16 +76,24 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
             key={f.key}
             onClick={() => setFilter(f.key)}
             aria-pressed={filter === f.key}
-            className="px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 active:scale-95"
+            className="px-4 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all duration-200 active:scale-95"
             style={filter === f.key
-              ? { background: 'linear-gradient(135deg,#C2185B,#9E0059)', color: '#fff', boxShadow: '0 2px 8px rgba(158,0,89,.28)' }
-              : { background: 'rgba(255,255,255,.55)', color: '#9E0059', border: '1px solid rgba(158,0,89,.2)' }
+              ? {
+                  background: 'linear-gradient(135deg, #C9A961, #A88A4B)',
+                  color: '#FFFCF6',
+                  boxShadow: '0 3px 12px rgba(168,138,75,0.32)',
+                }
+              : {
+                  background: 'rgba(255,252,246,0.55)',
+                  color: '#876338',
+                  border: '1px solid rgba(168,138,75,0.25)',
+                }
             }
           >
             {f.label}
             {f.key !== 'todos' && (
-              <span className="ml-1 opacity-70">
-                ({invitados.filter(i => i.estado === f.key).length})
+              <span className="ml-1.5 opacity-70 tabular-nums">
+                {invitados.filter(i => i.estado === f.key).length}
               </span>
             )}
           </button>
@@ -96,17 +104,17 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
       {loading ? (
         <div className="space-y-3" aria-busy="true" aria-label="Cargando invitaciones">
           {[1,2,3].map(i => (
-            <div key={i} className="h-16 rounded-2xl bg-white/40 animate-pulse" />
+            <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: 'rgba(255,252,246,0.5)' }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-14" role="status">
-          <p className="text-3xl mb-3">💌</p>
-          <p className="text-sm font-medium" style={{ color: '#9E0059' }}>
+          <p className="text-3xl mb-3" style={{ color: '#A88A4B', opacity: 0.55 }}>✦</p>
+          <p className="serif text-base font-medium" style={{ color: '#3F2E1F' }}>
             {filter === 'todos' ? 'Aún no hay invitaciones' : 'Sin invitaciones en este filtro'}
           </p>
           {filter === 'todos' && (
-            <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
+            <p className="text-xs mt-1.5" style={{ color: '#8B7E63' }}>
               Usa el formulario de arriba para agregar la primera.
             </p>
           )}

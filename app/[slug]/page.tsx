@@ -36,14 +36,14 @@ export default function PanelBoda() {
     return (
       <div className="min-h-dvh flex items-center justify-center px-4">
         <div className="glass rounded-3xl p-10 w-full max-w-sm text-center animate-in">
-          <p className="text-4xl mb-4">💒</p>
-          <h1 className="text-xl font-semibold" style={{ color: '#9E0059' }}>
+          <p className="text-4xl mb-4">✦</p>
+          <h1 className="serif text-2xl font-semibold" style={{ color: '#3F2E1F' }}>
             Panel no encontrado
           </h1>
-          <p className="text-sm mt-2" style={{ color: '#6B7280' }}>
+          <p className="text-sm mt-2" style={{ color: '#8B7E63' }}>
             Verifica que el enlace sea correcto.
           </p>
-          <p className="text-center text-xs mt-8" style={{ color: '#9CA3AF' }}>
+          <p className="text-center text-xs mt-8" style={{ color: '#A88A4B', opacity: 0.6 }}>
             © {new Date().getFullYear()} Elysium Invitaciones
           </p>
         </div>
@@ -54,7 +54,10 @@ export default function PanelBoda() {
   if (!boda || auth === null) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-pink-300 border-t-transparent animate-spin" />
+        <div
+          className="w-9 h-9 rounded-full border-2 animate-spin"
+          style={{ borderColor: 'rgba(168,138,75,0.25)', borderTopColor: '#A88A4B' }}
+        />
       </div>
     )
   }
@@ -73,18 +76,21 @@ export default function PanelBoda() {
   return (
     <main className="min-h-dvh px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto mb-8">
-        <div className="glass rounded-3xl px-6 py-5 flex items-center justify-between">
+        <div className="glass rounded-3xl px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <div>
-            <h1 className="text-xl font-semibold tracking-wide" style={{ color: '#9E0059' }}>
+            <p className="text-[10px] uppercase tracking-[0.22em] mb-1" style={{ color: '#A88A4B' }}>
+              Boda
+            </p>
+            <h1 className="serif text-2xl sm:text-3xl font-semibold tracking-wide" style={{ color: '#3F2E1F' }}>
               {boda.nombre}
             </h1>
-            <p className="text-xs mt-0.5" style={{ color: '#9CA3AF' }}>
-              Panel de Invitados · Tiempo real
+            <p className="text-xs mt-1" style={{ color: '#8B7E63' }}>
+              Panel de invitados · Tiempo real
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" aria-hidden="true" />
-            <span className="text-xs" style={{ color: '#6B7280' }}>En vivo</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(107,155,100,0.10)', border: '1px solid rgba(107,155,100,0.25)' }}>
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#6B9B64' }} aria-hidden="true" />
+            <span className="text-xs font-medium" style={{ color: '#2F5A28' }}>En vivo</span>
           </div>
         </div>
       </div>
@@ -93,7 +99,7 @@ export default function PanelBoda() {
         <GuestList urlBoda={boda.url_boda} nombreBoda={boda.nombre} />
       </div>
 
-      <p className="text-center text-xs mt-10" style={{ color: '#D1D5DB' }}>
+      <p className="text-center text-xs mt-10" style={{ color: '#A88A4B', opacity: 0.6 }}>
         © {new Date().getFullYear()} Elysium Invitaciones
       </p>
     </main>

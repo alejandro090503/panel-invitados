@@ -1,5 +1,5 @@
 'use client'
-import { Mail, CheckCircle2, Clock, XCircle, Ticket, UserCheck } from 'lucide-react'
+import { Mail, Clock, XCircle, Ticket, UserCheck } from 'lucide-react'
 import type { Invitado } from '@/lib/supabase'
 
 interface Props {
@@ -8,7 +8,6 @@ interface Props {
 
 export function ResumenCards({ invitados }: Props) {
   const invitaciones     = invitados.length
-  const confirmadas      = invitados.filter(i => i.estado === 'confirmado').length
   const pendientes       = invitados.filter(i => i.estado === 'pendiente').length
   const declinadas       = invitados.filter(i => i.estado === 'declino').length
   const pasesEnviados    = invitados.reduce((s, i) => s + i.pases, 0)
@@ -16,23 +15,27 @@ export function ResumenCards({ invitados }: Props) {
     .filter(i => i.estado === 'confirmado')
     .reduce((s, i) => s + (i.pases_confirmados || i.pases), 0)
 
+  /* Paleta de stats — todos dorados con acentos semánticos */
   const cards = [
-    { label: 'Invitaciones',         value: invitaciones,        icon: Mail,        color: '#9E0059',  bg: 'rgba(158,0,89,.08)'   },
-    { label: 'Pases enviados',       value: pasesEnviados,       icon: Ticket,      color: '#7C3AED',  bg: 'rgba(124,58,237,.08)' },
-    { label: 'Personas confirmadas', value: personasConfirmadas, icon: UserCheck,   color: '#059669',  bg: 'rgba(5,150,105,.08)'  },
-    { label: 'Pendientes',           value: pendientes,          icon: Clock,       color: '#D97706',  bg: 'rgba(217,119,6,.08)'  },
-    { label: 'Declinaron',           value: declinadas,          icon: XCircle,     color: '#DC2626',  bg: 'rgba(220,38,38,.08)'  },
+    { label: 'Invitaciones',         value: invitaciones,        icon: Mail,      color: '#A88A4B', bg: 'rgba(168,138,75,0.10)' },
+    { label: 'Pases enviados',       value: pasesEnviados,       icon: Ticket,    color: '#876338', bg: 'rgba(135,99,56,0.10)'  },
+    { label: 'Personas confirmadas', value: personasConfirmadas, icon: UserCheck, color: '#2F5A28', bg: 'rgba(107,155,100,0.12)' },
+    { label: 'Pendientes',           value: pendientes,          icon: Clock,     color: '#6E4A18', bg: 'rgba(184,137,58,0.12)'  },
+    { label: 'Declinaron',           value: declinadas,          icon: XCircle,   color: '#7A2A1F', bg: 'rgba(184,80,66,0.10)'   },
   ]
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
       {cards.map(({ label, value, icon: Icon, color, bg }) => (
-        <div key={label} className="glass-sm rounded-2xl px-4 py-4 flex flex-col items-center gap-1 text-center">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-1" style={{ background: bg }}>
+        <div
+          key={label}
+          className="glass-sm rounded-2xl px-4 py-5 flex flex-col items-center gap-1.5 text-center transition-transform duration-200 hover:-translate-y-0.5"
+        >
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-1" style={{ background: bg }}>
             <Icon size={18} color={color} strokeWidth={1.8} />
           </div>
-          <span className="text-2xl font-semibold tabular-nums" style={{ color }}>{value}</span>
-          <span className="text-xs" style={{ color: '#6B7280' }}>{label}</span>
+          <span className="serif text-3xl font-semibold tabular-nums leading-none" style={{ color }}>{value}</span>
+          <span className="text-[11px] uppercase tracking-wider mt-0.5" style={{ color: '#8B7E63' }}>{label}</span>
         </div>
       ))}
     </div>

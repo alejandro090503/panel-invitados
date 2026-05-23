@@ -13,7 +13,7 @@ export function BodaCard({ boda, onDeleted }: Props) {
   const [copied, setCopied] = useState<'panel' | 'pass' | null>(null)
   const [stats, setStats] = useState({ total: 0, confirmados: 0, pendientes: 0 })
 
-  const panelUrl = `${window.location.origin}/${boda.slug}`
+  const panelUrl = typeof window !== 'undefined' ? `${window.location.origin}/${boda.slug}` : ''
 
   useEffect(() => {
     async function loadStats() {
@@ -48,12 +48,12 @@ export function BodaCard({ boda, onDeleted }: Props) {
   return (
     <div className="glass-sm rounded-2xl p-5 animate-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="font-semibold text-base" style={{ color: '#1F1F2E' }}>
+      <div className="flex items-start justify-between mb-3 gap-3">
+        <div className="min-w-0">
+          <h3 className="serif font-semibold text-lg leading-tight" style={{ color: '#3F2E1F' }}>
             {boda.nombre}
           </h3>
-          <p className="text-xs mt-0.5 font-mono truncate max-w-[260px]" style={{ color: '#9CA3AF' }}>
+          <p className="text-xs mt-1 font-mono truncate max-w-[260px]" style={{ color: '#8B7E63' }}>
             /{boda.slug}
           </p>
         </div>
@@ -62,23 +62,26 @@ export function BodaCard({ boda, onDeleted }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Abrir invitación de ${boda.nombre}`}
-          className="p-2 rounded-xl text-gray-400 hover:text-pink-500 hover:bg-pink-50 transition-all"
+          className="p-2 rounded-xl transition-all duration-200 shrink-0"
+          style={{ color: '#8B7E63' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#A88A4B'; e.currentTarget.style.background = 'rgba(168,138,75,0.10)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#8B7E63'; e.currentTarget.style.background = 'transparent' }}
         >
           <ExternalLink size={15} strokeWidth={1.8} />
         </a>
       </div>
 
       {/* Stats */}
-      <div className="flex gap-4 mb-4">
-        <div className="flex items-center gap-1.5 text-xs" style={{ color: '#6B7280' }}>
-          <Users size={13} strokeWidth={2} />
-          <span><strong className="font-semibold" style={{ color: '#1F1F2E' }}>{stats.total}</strong> invitados</span>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-4 text-xs">
+        <div className="flex items-center gap-1.5" style={{ color: '#5D4A33' }}>
+          <Users size={13} strokeWidth={2} style={{ color: '#A88A4B' }} />
+          <span><strong className="font-semibold tabular-nums" style={{ color: '#3F2E1F' }}>{stats.total}</strong> invitaciones</span>
         </div>
-        <div className="text-xs" style={{ color: '#059669' }}>
-          {stats.confirmados} confirmados
+        <div className="tabular-nums" style={{ color: '#2F5A28' }}>
+          <strong className="font-semibold">{stats.confirmados}</strong> confirmadas
         </div>
-        <div className="text-xs" style={{ color: '#D97706' }}>
-          {stats.pendientes} pendientes
+        <div className="tabular-nums" style={{ color: '#6E4A18' }}>
+          <strong className="font-semibold">{stats.pendientes}</strong> pendientes
         </div>
       </div>
 
@@ -87,11 +90,11 @@ export function BodaCard({ boda, onDeleted }: Props) {
         <button
           onClick={() => copyText(panelUrl, 'panel')}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
-          style={{
-            background: copied === 'panel' ? 'rgba(5,150,105,.12)' : 'rgba(158,0,89,.08)',
-            color: copied === 'panel' ? '#059669' : '#9E0059',
-            border: `1px solid ${copied === 'panel' ? 'rgba(5,150,105,.25)' : 'rgba(158,0,89,.2)'}`,
-          }}
+          style={
+            copied === 'panel'
+              ? { background: 'rgba(107,155,100,0.14)', color: '#2F5A28', border: '1px solid rgba(107,155,100,0.30)' }
+              : { background: 'rgba(168,138,75,0.10)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }
+          }
         >
           {copied === 'panel'
             ? <><Check size={13} /> Copiado</>
@@ -102,11 +105,11 @@ export function BodaCard({ boda, onDeleted }: Props) {
         <button
           onClick={() => copyText(boda.password, 'pass')}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
-          style={{
-            background: copied === 'pass' ? 'rgba(5,150,105,.12)' : 'rgba(124,58,237,.08)',
-            color: copied === 'pass' ? '#059669' : '#7C3AED',
-            border: `1px solid ${copied === 'pass' ? 'rgba(5,150,105,.25)' : 'rgba(124,58,237,.2)'}`,
-          }}
+          style={
+            copied === 'pass'
+              ? { background: 'rgba(107,155,100,0.14)', color: '#2F5A28', border: '1px solid rgba(107,155,100,0.30)' }
+              : { background: 'rgba(168,138,75,0.10)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }
+          }
         >
           {copied === 'pass'
             ? <><Check size={13} /> Copiado</>
@@ -117,7 +120,10 @@ export function BodaCard({ boda, onDeleted }: Props) {
         <button
           onClick={deleteBoda}
           aria-label={`Eliminar panel de ${boda.nombre}`}
-          className="p-2 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200 active:scale-95 ml-auto"
+          className="p-2 rounded-xl transition-all duration-200 active:scale-95 ml-auto"
+          style={{ color: '#8B7E63' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#B85042'; e.currentTarget.style.background = 'rgba(184,80,66,0.08)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#8B7E63'; e.currentTarget.style.background = 'transparent' }}
         >
           <Trash2 size={14} strokeWidth={1.8} />
         </button>

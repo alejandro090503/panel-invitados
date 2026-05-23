@@ -1,53 +1,99 @@
 @import "tailwindcss";
 
 :root {
-  --rosa: #F9A8D4;
-  --fucsia: #9E0059;
-  --fucsia-mid: #C2185B;
-  --crema: #FFF0F7;
-  --texto: #1F1F2E;
-  --gris: #6B7280;
+  /* Paleta crema + dorado — Elysium Invitaciones */
+  --crema-1:    #FBF8F2;
+  --crema-2:    #F4ECD8;
+  --crema-3:    #E8D9B5;
+  --crema-soft: #FFFCF6;
+
+  --gold:       #A88A4B;
+  --gold-mid:   #C9A961;
+  --gold-soft:  #D4BC85;
+  --bronze:     #876338;
+
+  --mocha:      #3F2E1F;
+  --mocha-mid:  #5D4A33;
+  --taupe:      #8B7E63;
+  --taupe-border: #D9CDB6;
+
+  /* Semánticas */
+  --success: #6B9B64;
+  --warning: #B8893A;
+  --danger:  #B85042;
 }
 
 * { box-sizing: border-box; }
 html { -webkit-tap-highlight-color: transparent; }
 
 body {
-  font-family: 'Georgia', 'Times New Roman', serif;
-  background: linear-gradient(135deg, #FFF0F7 0%, #FCE4EC 55%, #F8BBD9 100%);
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #FBF8F2 0%, #F4ECD8 55%, #E8D9B5 100%);
   min-height: 100dvh;
-  color: var(--texto);
+  color: var(--mocha);
 }
 
+/* Glassmorphism alineado a crema + dorado */
 .glass {
-  background: rgba(255, 255, 255, 0.68);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 8px 32px rgba(158, 0, 89, 0.09), 0 2px 8px rgba(158, 0, 89, 0.05);
+  background: rgba(255, 252, 246, 0.72);
+  backdrop-filter: blur(22px) saturate(1.05);
+  -webkit-backdrop-filter: blur(22px) saturate(1.05);
+  border: 1px solid rgba(217, 205, 182, 0.7);
+  box-shadow:
+    0 10px 36px rgba(135, 99, 56, 0.10),
+    0 2px 10px rgba(135, 99, 56, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .glass-sm {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  box-shadow: 0 4px 16px rgba(158, 0, 89, 0.06);
+  background: rgba(255, 252, 246, 0.58);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  border: 1px solid rgba(217, 205, 182, 0.6);
+  box-shadow:
+    0 4px 16px rgba(135, 99, 56, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-::-webkit-scrollbar { width: 5px; }
+/* Tipografía editorial para títulos */
+.serif {
+  font-family: var(--font-serif), 'Cormorant Garamond', 'Georgia', serif;
+  letter-spacing: 0.01em;
+}
+
+/* Scrollbar dorado */
+::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(158,0,89,0.22); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(158,0,89,0.4); }
+::-webkit-scrollbar-thumb { background: rgba(168, 138, 75, 0.28); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(168, 138, 75, 0.5); }
 
-:focus-visible { outline: 2px solid #9E0059; outline-offset: 2px; }
+/* Focus dorado para accesibilidad (4.5:1 sobre crema) */
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
 
-.badge-pendiente   { background: rgba(251,191,36,.14);  color: #78350F; border: 1px solid rgba(251,191,36,.32); }
-.badge-confirmado  { background: rgba(52,211,153,.14);  color: #064E3B; border: 1px solid rgba(52,211,153,.32); }
-.badge-declino     { background: rgba(239,68,68,.11);   color: #7F1D1D; border: 1px solid rgba(239,68,68,.24); }
+/* Badges de estado */
+.badge-pendiente   { background: rgba(184, 137, 58, .12);  color: #6E4A18; border: 1px solid rgba(184, 137, 58, .30); }
+.badge-confirmado  { background: rgba(107, 155, 100, .14); color: #2A4E24; border: 1px solid rgba(107, 155, 100, .32); }
+.badge-declino     { background: rgba(184, 80, 66, .11);   color: #6F2419; border: 1px solid rgba(184, 80, 66, .26); }
 
+/* Animación de entrada */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.animate-in { animation: fadeUp .28s ease-out both; }
+.animate-in { animation: fadeUp .32s ease-out both; }
+
+/* Divisor ornamental dorado */
+.divider-orn {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--gold); opacity: .55;
+}
+.divider-orn::before, .divider-orn::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-soft), transparent);
+}
+
+/* Respeto a usuarios con motion reducido */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in { animation: none; }
+  * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

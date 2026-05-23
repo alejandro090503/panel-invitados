@@ -44,10 +44,14 @@ export function GuestCard({ invitado, onDeleted }: Props) {
 
   return (
     <div className="glass-sm rounded-2xl px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 animate-in">
-      {/* Avatar */}
+      {/* Avatar dorado */}
       <div
-        className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-white text-sm font-semibold"
-        style={{ background: 'linear-gradient(135deg, #F9A8D4 0%, #9E0059 100%)' }}
+        className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 serif text-base font-semibold"
+        style={{
+          background: 'linear-gradient(135deg, #D4BC85 0%, #A88A4B 100%)',
+          color: '#FFFCF6',
+          boxShadow: '0 4px 12px rgba(168,138,75,0.22)',
+        }}
         aria-hidden="true"
       >
         {invitado.nombre.charAt(0).toUpperCase()}
@@ -55,21 +59,21 @@ export function GuestCard({ invitado, onDeleted }: Props) {
 
       {/* Info */}
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm truncate" style={{ color: '#1F1F2E' }}>
+        <p className="serif font-semibold text-base leading-tight truncate" style={{ color: '#3F2E1F' }}>
           {invitado.nombre}
         </p>
-        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className="flex items-center gap-1 text-xs" style={{ color: '#6B7280' }}>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <span className="flex items-center gap-1 text-xs" style={{ color: '#8B7E63' }}>
             <Users size={11} strokeWidth={2} />
             {invitado.pases} {invitado.pases === 1 ? 'pase' : 'pases'}
           </span>
           {invitado.estado === 'confirmado' && (
-            <span className="flex items-center gap-1 text-xs" style={{ color: '#059669' }}>
+            <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#2F5A28' }}>
               <UserCheck size={11} strokeWidth={2} />
               {confirmados} de {invitado.pases} asisten
             </span>
           )}
-          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${BADGE[invitado.estado]}`}>
+          <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${BADGE[invitado.estado]}`}>
             {LABEL[invitado.estado]}
           </span>
         </div>
@@ -77,7 +81,7 @@ export function GuestCard({ invitado, onDeleted }: Props) {
 
       {/* Link preview */}
       <div className="hidden lg:block flex-1 min-w-0">
-        <p className="text-xs text-gray-400 truncate font-mono" title={link}>
+        <p className="text-xs truncate font-mono" style={{ color: '#A89876' }} title={link}>
           {link.length > 55 ? link.slice(0, 55) + '…' : link}
         </p>
       </div>
@@ -88,15 +92,12 @@ export function GuestCard({ invitado, onDeleted }: Props) {
           onClick={copyLink}
           aria-label="Copiar link de invitación"
           title="Copiar link"
-          className="
-            flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium
-            transition-all duration-200 active:scale-95
-          "
-          style={{
-            background: copied ? 'rgba(5,150,105,.12)' : 'rgba(158,0,89,.08)',
-            color: copied ? '#059669' : '#9E0059',
-            border: `1px solid ${copied ? 'rgba(5,150,105,.25)' : 'rgba(158,0,89,.2)'}`,
-          }}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
+          style={
+            copied
+              ? { background: 'rgba(107,155,100,0.14)', color: '#2F5A28', border: '1px solid rgba(107,155,100,0.30)' }
+              : { background: 'rgba(168,138,75,0.10)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }
+          }
         >
           {copied
             ? <><Check size={13} /><span>Copiado</span></>
@@ -109,11 +110,10 @@ export function GuestCard({ invitado, onDeleted }: Props) {
           disabled={deleting}
           aria-label={`Eliminar invitación de ${invitado.nombre}`}
           title="Eliminar invitación"
-          className="
-            p-2 rounded-xl transition-all duration-200 active:scale-95
-            text-gray-400 hover:text-red-500
-            hover:bg-red-50 disabled:opacity-50
-          "
+          className="p-2 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50"
+          style={{ color: '#8B7E63' }}
+          onMouseEnter={(e) => { e.currentTarget.style.color = '#B85042'; e.currentTarget.style.background = 'rgba(184,80,66,0.08)' }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = '#8B7E63'; e.currentTarget.style.background = 'transparent' }}
         >
           <Trash2 size={15} strokeWidth={1.8} />
         </button>
