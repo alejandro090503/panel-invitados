@@ -15,6 +15,7 @@ export interface Invitado {
   id: string
   nombre: string
   pases: number
+  pases_menores: number
   pases_confirmados: number
   nombres_confirmados: string[] | null
   estado: EstadoInvitado
