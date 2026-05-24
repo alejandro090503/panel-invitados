@@ -86,7 +86,8 @@ export function ListaConfirmados({ invitados, nombreBoda }: Props) {
         doc.setFont('helvetica', 'normal')
         doc.setFontSize(9)
         doc.setTextColor(139, 126, 99)
-        const subt = `(${inv.pases_confirmados || 0} de ${inv.pases} pases)`
+        const totalPersonas = inv.pases + (inv.pases_menores || 0)
+        const subt = `(${inv.pases_confirmados || 0} de ${totalPersonas} ${totalPersonas === 1 ? 'persona' : 'personas'})`
         const w = doc.getTextWidth(inv.nombre)
         doc.text(subt, margin + w + 8, y)
         y += 14
@@ -189,7 +190,10 @@ export function ListaConfirmados({ invitados, nombreBoda }: Props) {
                         {inv.nombre}
                       </p>
                       <span className="text-xs tabular-nums" style={{ color: '#8B7E63' }}>
-                        {inv.pases_confirmados || 0} de {inv.pases} pases
+                        {(() => {
+                          const total = inv.pases + (inv.pases_menores || 0)
+                          return `${inv.pases_confirmados || 0} de ${total} ${total === 1 ? 'persona' : 'personas'}`
+                        })()}
                       </span>
                     </div>
                     {lista.length === 0 ? (

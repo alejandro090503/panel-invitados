@@ -69,14 +69,14 @@ export function GuestCard({ invitado, onDeleted }: Props) {
             {invitado.pases} {invitado.pases === 1 ? 'pase' : 'pases'}
             {menores > 0 && (
               <span style={{ color: '#876338' }}>
-                {' '}({menores} {menores === 1 ? 'menor' : 'menores'})
+                {' '}+ {menores} {menores === 1 ? 'menor' : 'menores'}
               </span>
             )}
           </span>
           {invitado.estado === 'confirmado' && (
             <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#2F5A28' }}>
               <UserCheck size={11} strokeWidth={2} />
-              {confirmados} de {invitado.pases} asisten
+              {confirmados} de {invitado.pases + menores} asisten
             </span>
           )}
           <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${BADGE[invitado.estado]}`}>
