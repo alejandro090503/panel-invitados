@@ -22,11 +22,10 @@ const LABEL: Record<EstadoInvitado, string> = {
 }
 
 export function GuestCard({ invitado, onDeleted }: Props) {
-  const [copied, setCopied]   = useState(false)
+  const [copied, setCopied]     = useState(false)
   const [deleting, setDeleting] = useState(false)
 
-  const menores = invitado.pases_menores || 0
-  const link = `${invitado.url_boda}?para=${encodeURIComponent(invitado.nombre)}&pases=${invitado.pases}${menores > 0 ? `&menores=${menores}` : ''}`
+  const link = `${invitado.url_boda}?para=${encodeURIComponent(invitado.nombre)}&pases=${invitado.pases}`
 
   async function copyLink() {
     await navigator.clipboard.writeText(link)
@@ -67,16 +66,11 @@ export function GuestCard({ invitado, onDeleted }: Props) {
           <span className="flex items-center gap-1 text-xs" style={{ color: '#8B7E63' }}>
             <Users size={11} strokeWidth={2} />
             {invitado.pases} {invitado.pases === 1 ? 'pase' : 'pases'}
-            {menores > 0 && (
-              <span style={{ color: '#876338' }}>
-                {' '}+ {menores} {menores === 1 ? 'menor' : 'menores'}
-              </span>
-            )}
           </span>
           {invitado.estado === 'confirmado' && (
             <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#2F5A28' }}>
               <UserCheck size={11} strokeWidth={2} />
-              {confirmados} de {invitado.pases + menores} asisten
+              {confirmados} de {invitado.pases} asisten
             </span>
           )}
           <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${BADGE[invitado.estado]}`}>

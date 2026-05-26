@@ -18,7 +18,6 @@ const INPUT_STYLE: React.CSSProperties = {
 export function AddGuestForm({ urlBoda, onAdded }: Props) {
   const [nombre, setNombre] = useState('')
   const [pases, setPases]   = useState(1)
-  const [pasesMenores, setPasesMenores] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -27,8 +26,7 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
     const nombreTrimmed = nombre.trim()
     if (!nombreTrimmed) return
 
-    const safePases   = Math.max(1, Math.floor(pases) || 1)
-    const safeMenores = Math.max(0, Math.floor(pasesMenores) || 0)
+    const safePases = Math.max(1, Math.floor(pases) || 1)
 
     setLoading(true)
     setError('')
@@ -37,7 +35,7 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
       const { error: sbError } = await supabase.from('invitados').insert({
         nombre: nombreTrimmed,
         pases: safePases,
-        pases_menores: safeMenores,
+        pases_menores: 0,
         pases_confirmados: 0,
         estado: 'pendiente',
         url_boda: urlBoda.trim().replace(/\/+$/, ''),
@@ -52,7 +50,6 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
 
       setNombre('')
       setPases(1)
-      setPasesMenores(0)
       setLoading(false)
       onAdded()
     } catch (err) {
@@ -61,8 +58,6 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
       setLoading(false)
     }
   }
-
-  const total = (pases || 0) + (pasesMenores || 0)
 
   return (
     <form onSubmit={handleSubmit} noValidate className="glass rounded-2xl p-6">
@@ -90,7 +85,7 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
           />
         </div>
 
-        {/* Pases adultos */}
+        {/* Pases */}
         <div className="w-full sm:w-24">
           <label htmlFor="pases" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
             Pases
@@ -102,23 +97,6 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
             max={20}
             value={pases}
             onChange={e => setPases(Number(e.target.value))}
-            className={INPUT_CLASS}
-            style={INPUT_STYLE}
-          />
-        </div>
-
-        {/* Pases menores */}
-        <div className="w-full sm:w-28">
-          <label htmlFor="pasesMenores" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
-            Menores
-          </label>
-          <input
-            id="pasesMenores"
-            type="number"
-            min={0}
-            max={20}
-            value={pasesMenores}
-            onChange={e => setPasesMenores(Number(e.target.value))}
             className={INPUT_CLASS}
             style={INPUT_STYLE}
           />
@@ -140,11 +118,6 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
           </button>
         </div>
       </div>
-
-      {/* Helper text */}
-      <p className="text-[11px] mt-2" style={{ color: '#8B7E63' }}>
-        Los menores se suman aparte. Total en la invitación: <strong style={{ color: '#876338' }}>{total}</strong> {total === 1 ? 'persona' : 'personas'}.
-      </p>
 
       {error && (
         <p role="alert" className="text-xs mt-2" style={{ color: '#B85042' }}>{error}</p>
