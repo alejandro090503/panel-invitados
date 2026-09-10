@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase'
 interface Props {
   urlBoda: string
   onAdded: () => void
+  showMenores?: boolean
+  nombresMode?: boolean
 }
 
 const INPUT_CLASS = 'w-full rounded-xl px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 placeholder:text-[#C2B59A]'
@@ -15,9 +17,12 @@ const INPUT_STYLE: React.CSSProperties = {
   color: '#3F2E1F',
 }
 
-export function AddGuestForm({ urlBoda, onAdded }: Props) {
+export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMode = false }: Props) {
   const [nombre, setNombre] = useState('')
   const [pases, setPases]   = useState(1)
+  const [menores, setMenores] = useState(0)
+  const [telefono, setTelefono] = useState('')
+  const [nombresAsignadosText, setNombresAsignadosText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -26,20 +31,41 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
     const nombreTrimmed = nombre.trim()
     if (!nombreTrimmed) return
 
-    const safePases = Math.max(1, Math.floor(pases) || 1)
+    let nombresAsignados: string[] = []
+    let safePases: number
+    if (nombresMode) {
+      nombresAsignados = nombresAsignadosText
+        .split('\n')
+        .map(s => s.trim())
+        .filter(s => s.length > 0)
+      if (nombresAsignados.length === 0) {
+        setError('Agrega al menos un nombre específico (uno por línea).')
+        return
+      }
+      safePases = nombresAsignados.length
+    } else {
+      safePases = Math.max(1, Math.floor(pases) || 1)
+    }
+    const safeMenores = showMenores ? Math.max(0, Math.floor(menores) || 0) : 0
 
     setLoading(true)
     setError('')
 
     try {
-      const { error: sbError } = await supabase.from('invitados').insert({
+      const insertPayload: Record<string, unknown> = {
         nombre: nombreTrimmed,
         pases: safePases,
-        pases_menores: 0,
+        pases_menores: safeMenores,
         pases_confirmados: 0,
         estado: 'pendiente',
         url_boda: urlBoda.trim().replace(/\/+$/, ''),
-      })
+        telefono: telefono.trim() || null,
+      }
+      if (nombresMode) {
+        insertPayload.nombres_asignados = nombresAsignados
+      }
+
+      const { error: sbError } = await supabase.from('invitados').insert(insertPayload)
 
       if (sbError) {
         console.error('Supabase insert error:', sbError)
@@ -48,8 +74,19 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
         return
       }
 
+      // Si este nombre se había borrado antes, quitamos su lápida: volver a
+      // darlo de alta reactiva su invitación y debe poder confirmar de nuevo.
+      await supabase
+        .from('invitados_borrados')
+        .delete()
+        .ilike('nombre', nombreTrimmed)
+        .eq('url_boda', urlBoda.trim().replace(/\/+$/, ''))
+
       setNombre('')
       setPases(1)
+      setMenores(0)
+      setNombresAsignadosText('')
+      setTelefono('')
       setLoading(false)
       onAdded()
     } catch (err) {
@@ -85,18 +122,57 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
           />
         </div>
 
-        {/* Pases */}
-        <div className="w-full sm:w-24">
-          <label htmlFor="pases" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
-            Pases
+        {/* Pases — oculto en modo nombres específicos */}
+        {!nombresMode && (
+          <div className="w-full sm:w-24">
+            <label htmlFor="pases" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
+              Pases
+            </label>
+            <input
+              id="pases"
+              type="number"
+              min={1}
+              max={20}
+              value={pases}
+              onChange={e => setPases(Number(e.target.value))}
+              className={INPUT_CLASS}
+              style={INPUT_STYLE}
+            />
+          </div>
+        )}
+
+        {/* Pases menores (solo en bodas que usan menores) */}
+        {showMenores && !nombresMode && (
+          <div className="w-full sm:w-24">
+            <label htmlFor="menores" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
+              Menores
+            </label>
+            <input
+              id="menores"
+              type="number"
+              min={0}
+              max={20}
+              value={menores}
+              onChange={e => setMenores(Number(e.target.value))}
+              className={INPUT_CLASS}
+              style={INPUT_STYLE}
+            />
+          </div>
+        )}
+
+        {/* WhatsApp del contacto (opcional) */}
+        <div className="w-full sm:w-44">
+          <label htmlFor="telefono" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
+            WhatsApp
           </label>
           <input
-            id="pases"
-            type="number"
-            min={1}
-            max={20}
-            value={pases}
-            onChange={e => setPases(Number(e.target.value))}
+            id="telefono"
+            type="tel"
+            inputMode="tel"
+            value={telefono}
+            onChange={e => setTelefono(e.target.value)}
+            placeholder="52 55 1234 5678"
+            autoComplete="off"
             className={INPUT_CLASS}
             style={INPUT_STYLE}
           />
@@ -118,6 +194,26 @@ export function AddGuestForm({ urlBoda, onAdded }: Props) {
           </button>
         </div>
       </div>
+
+      {nombresMode && (
+        <div className="mt-3">
+          <label htmlFor="nombres_asignados" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
+            Nombres específicos a confirmar (uno por línea)
+          </label>
+          <textarea
+            id="nombres_asignados"
+            value={nombresAsignadosText}
+            onChange={e => setNombresAsignadosText(e.target.value)}
+            rows={Math.max(2, nombresAsignadosText.split('\n').length)}
+            placeholder={'Ej:\nJuan Pérez\nMaría García\nLuis Pérez'}
+            className={INPUT_CLASS}
+            style={{ ...INPUT_STYLE, resize: 'vertical', minHeight: 80, fontFamily: 'inherit' }}
+          />
+          <p className="text-[11px] mt-1.5" style={{ color: '#8B7E63' }}>
+            El invitado verá cada nombre con su propio botón Asistiré / No asistiré. Los pases se cuentan automáticamente.
+          </p>
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="text-xs mt-2" style={{ color: '#B85042' }}>{error}</p>

@@ -8,6 +8,7 @@ export interface Boda {
   nombre: string
   url_boda: string
   password: string
+  borrado_definitivo: boolean
   created_at: string
 }
 
@@ -18,6 +19,8 @@ export interface Invitado {
   pases_menores: number
   pases_confirmados: number
   nombres_confirmados: string[] | null
+  nombres_asignados: string[] | null
+  telefono: string | null
   estado: EstadoInvitado
   url_boda: string
   created_at: string

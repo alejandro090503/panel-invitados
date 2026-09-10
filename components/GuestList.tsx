@@ -61,11 +61,14 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
     { key: 'declino',   label: 'Declinaron'  },
   ]
 
+  const usaMenores = urlBoda.includes('mariana-y-pedro') || urlBoda.includes('alejandro-y-mayreli') || urlBoda.includes('xv-melissa') || urlBoda.includes('hector-y-cecilia') || urlBoda.includes('xv-ailin') || urlBoda.includes('laura-y-jorge') || urlBoda.includes('dulce-y-david') || urlBoda.includes('zeltzin-y-gabriel') || urlBoda.includes('xv-mia-psi')
+  const usaNombres = urlBoda.includes('roxana-y-omar') || urlBoda.includes('carolina-y-alfonso') || urlBoda.includes('francisco-y-fernanda') || urlBoda.includes('rosa-y-jorge') || urlBoda.includes('abigail-y-judith') || urlBoda.includes('salvador-y-jacqueline') || urlBoda.includes('veronica-y-pedro') || urlBoda.includes('jessica-y-jesus') || urlBoda.includes('ariadna-y-carlos') || urlBoda.includes('isamar-y-erik') || urlBoda.includes('xv-valerie') || urlBoda.includes('emilio-y-monica') || urlBoda.includes('hitver-y-oriana') || urlBoda.includes('georgina-y-andres') || urlBoda.includes('eduardo-y-karen') || urlBoda.includes('xv-maria-libertad') || urlBoda.includes('maria-y-ivan') || urlBoda.includes('stephany-y-alberto') || urlBoda.includes('angel-y-jaquelinne') || urlBoda.includes('ana-karen-y-oswaldo') || urlBoda.includes('cristopher-y-tania') || urlBoda.includes('abraham-y-america') || urlBoda.includes('paola-e-ivan') || urlBoda.includes('maria-y-alvaro') || urlBoda.includes('carlos-y-yesenia') || urlBoda.includes('cinthia-y-sergio') || urlBoda.includes('sarahi-y-miguel')
+
   return (
     <div className="space-y-6">
       <ResumenCards invitados={invitados} />
 
-      <AddGuestForm urlBoda={urlBoda.trim().replace(/\/+$/, '')} onAdded={fetchInvitados} />
+      <AddGuestForm urlBoda={urlBoda.trim().replace(/\/+$/, '')} onAdded={fetchInvitados} showMenores={usaMenores} nombresMode={usaNombres} />
 
       <ListaConfirmados invitados={invitados} nombreBoda={nombreBoda} />
 
@@ -122,7 +125,7 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
       ) : (
         <div className="space-y-2.5" aria-label="Lista de invitaciones">
           {filtered.map(inv => (
-            <GuestCard key={inv.id} invitado={inv} onDeleted={fetchInvitados} />
+            <GuestCard key={inv.id} invitado={inv} nombreBoda={nombreBoda} showMenores={usaMenores} onDeleted={fetchInvitados} />
           ))}
         </div>
       )}
