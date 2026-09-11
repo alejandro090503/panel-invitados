@@ -114,6 +114,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     || invitado.url_boda.includes('neidy-y-cesar')
     || invitado.url_boda.includes('alma-y-luis')
     || invitado.url_boda.includes('cumple-hector-y-eva')
+    || invitado.url_boda.includes('ramiro-y-rosy')
   const link = usarToken
     ? `${invitado.url_boda}?i=${encodeInvite(invitado.nombre, invitado.pases, menores)}`
     : `${invitado.url_boda}?para=${encodeURIComponent(invitado.nombre)}&pases=${invitado.pases}` + (menores > 0 ? `&menores=${menores}` : '')
