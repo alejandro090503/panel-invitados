@@ -36,6 +36,46 @@ function claveNombre(n: string): string {
     .trim()
 }
 
+// Empareja los nombres asignados con los que el invitado dejó registrados.
+//
+// No siempre son el mismo texto: quien confirmó ANTES de que se le asignaran
+// los nombres escribió el suyo a mano, y suele escribirlo más corto —
+// "Itzel Macias Marin" por "Jennifer Itzel Macias Marin". Comparando tal cual
+// salía con ✗ como si hubiera declinado, y el cliente no sabía qué contestó.
+//
+// Dos pasadas: primero los que coinciden exacto (sin acentos), y solo con los
+// que sobran se busca una coincidencia por palabras. Se exige que un nombre
+// contenga TODAS las palabras del otro y compartan al menos dos, para no
+// confundir a dos invitados con nombres parecidos.
+type Emparejado = { ok: boolean; comoEscribio?: string }
+
+function emparejarNombres(asignados: string[], confirmados: string[]): Emparejado[] {
+  const conf = confirmados.map(c => ({ original: c, palabras: claveNombre(c).split(' ').filter(Boolean), usado: false }))
+  const out: Emparejado[] = asignados.map(() => ({ ok: false }))
+
+  asignados.forEach((a, i) => {
+    const clave = claveNombre(a)
+    const exacto = conf.find(c => !c.usado && c.palabras.join(' ') === clave)
+    if (exacto) { exacto.usado = true; out[i] = { ok: true } }
+  })
+
+  asignados.forEach((a, i) => {
+    if (out[i].ok) return
+    const palabrasA = claveNombre(a).split(' ').filter(Boolean)
+    let mejor: typeof conf[number] | null = null
+    let mejorComunes = 0
+    for (const c of conf) {
+      if (c.usado) continue
+      const comunes = palabrasA.filter(p => c.palabras.includes(p)).length
+      const unoContieneAlOtro = comunes === palabrasA.length || comunes === c.palabras.length
+      if (comunes >= 2 && unoContieneAlOtro && comunes > mejorComunes) { mejor = c; mejorComunes = comunes }
+    }
+    if (mejor) { mejor.usado = true; out[i] = { ok: true, comoEscribio: mejor.original } }
+  })
+
+  return out
+}
+
 // Codifica nombre|pases|menores en un token base64url (solo A-Z a-z 0-9 - _).
 // Sin espacios, & ni % → sobrevive el linkificado y el link-shim de Messenger.
 function encodeInvite(nombre: string, pases: number, menores: number): string {
@@ -383,12 +423,14 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             </div>
 
             {tieneAsignados && (() => {
-              const confirmadosSet = new Set((invitado.nombres_confirmados ?? []).map(claveNombre))
               const todosNo = invitado.estado === 'declino'
+              const pares = todosNo
+                ? asignados.map(() => ({ ok: false }) as Emparejado)
+                : emparejarNombres(asignados, invitado.nombres_confirmados ?? [])
               return (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {asignados.map((n, i) => {
-                    const ok = todosNo ? false : confirmadosSet.has(claveNombre(n))
+                    const { ok, comoEscribio } = pares[i]
                     const decidido = invitado.estado !== 'pendiente'
                     const style: React.CSSProperties = !decidido
                       ? { background: 'rgba(168,138,75,0.08)', color: '#876338', border: '1px solid rgba(168,138,75,0.22)' }
@@ -396,8 +438,15 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                         ? { background: 'rgba(47,90,40,0.10)', color: '#2F5A28', border: '1px solid rgba(47,90,40,0.30)' }
                         : { background: 'rgba(184,80,66,0.08)', color: '#B85042', border: '1px solid rgba(184,80,66,0.25)' }
                     return (
-                      <span key={i} className="text-[11px] px-2 py-0.5 rounded-full font-medium" style={style}>
+                      <span
+                        key={i}
+                        className="text-[11px] px-2 py-0.5 rounded-full font-medium"
+                        style={style}
+                        // Si confirmó con el nombre escrito distinto, se ve al pasar el cursor.
+                        title={comoEscribio ? `Confirmó escribiendo "${comoEscribio}"` : undefined}
+                      >
                         {n}{decidido ? (ok ? ' ✓' : ' ✗') : ''}
+                        {comoEscribio && <span className="opacity-70"> · escribió “{comoEscribio}”</span>}
                       </span>
                     )
                   })}
