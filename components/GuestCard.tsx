@@ -4,6 +4,7 @@ import { Copy, Check, Trash2, Users, UserCheck, MessageCircle, Pencil } from 'lu
 import type { Invitado, EstadoInvitado } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 import { waLink, mensajeInvitacion, normalizarTelefono } from '@/lib/whatsapp'
+import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
 
 interface Props {
   invitado: Invitado
@@ -179,6 +180,11 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     const nuevoTel = editTelefono.trim()
     if (!nuevoNombre) {
       setError('El nombre no puede quedar vacío.')
+      return
+    }
+    if (nuevoNombre.toLowerCase() !== invitado.nombre.trim().toLowerCase()
+        && await nombreYaExiste(invitado.url_boda, nuevoNombre, invitado.id)) {
+      setError(avisoNombreDuplicado(nuevoNombre))
       return
     }
 

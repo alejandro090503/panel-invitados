@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { UserPlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
 
 interface Props {
   urlBoda: string
@@ -52,6 +53,11 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
     setError('')
 
     try {
+      if (await nombreYaExiste(urlBoda, nombreTrimmed)) {
+        setError(avisoNombreDuplicado(nombreTrimmed))
+        setLoading(false)
+        return
+      }
       const insertPayload: Record<string, unknown> = {
         nombre: nombreTrimmed,
         pases: safePases,
