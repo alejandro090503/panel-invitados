@@ -19,5 +19,17 @@ export function waLink(telefono: string | null | undefined, texto: string): stri
 // Sin la palabra "boda": el panel también sirve XV años, bautizos y cumpleaños,
 // y el nombre del evento ya trae su propio prefijo ("Boda …", "XV …").
 export function mensajeInvitacion(nombre: string, evento: string, link: string): string {
+  const propio = MENSAJE_POR_EVENTO.find(m => link.includes(m.url))
+  if (propio) return `${propio.texto}\n\n${link}`
   return `Hola ${nombre}, nos encantaría contar contigo. Aquí está tu invitación personalizada a ${evento}: ${link}`
 }
+
+// Mensajes que el cliente pidió en lugar del predeterminado. Solo aplican a su
+// evento: el resto de los paneles sigue con el mensaje de siempre. El texto va
+// tal cual lo mandó el cliente; el link se agrega al final en su propio renglón.
+const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string }> = [
+  {
+    url: 'boda-deny-y-arturo',
+    texto: 'Les compartimos con mucha alegria nuestra invitación de boda, esperamos contar con ustedes',
+  },
+]
