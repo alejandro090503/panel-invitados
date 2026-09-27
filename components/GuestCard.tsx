@@ -143,6 +143,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   // link ya enviado deja de encontrarla y el invitado sigue viendo los datos
   // viejos. Con `?c=<id>` el link apunta a la fila y sobrevive al renombrado.
   const usarId = invitado.url_boda.includes('erika-y-marin')
+    || invitado.url_boda.includes('xv-leticia')
 
   const link = usarId
     ? `${invitado.url_boda}?c=${invitado.id}`
