@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
   const supabase     = createClient(supabaseUrl, supabaseKey)
 
   let body: {
+    id?: string
     nombre?: string
     estado?: string
     pases?: number
@@ -31,10 +32,10 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'JSON inválido' }, { status: 400, headers: CORS_HEADERS })
   }
 
-  const { nombre, estado = 'confirmado', pases, pases_confirmados, nombres_confirmados, url_boda } = body
+  const { id, nombre, estado = 'confirmado', pases, pases_confirmados, nombres_confirmados, url_boda } = body
 
-  if (!nombre) {
-    return Response.json({ error: 'nombre es requerido' }, { status: 400, headers: CORS_HEADERS })
+  if (!id && !nombre) {
+    return Response.json({ error: 'id o nombre es requerido' }, { status: 400, headers: CORS_HEADERS })
   }
 
   const updateData: Record<string, unknown> = { estado }
@@ -55,8 +56,14 @@ export async function POST(req: NextRequest) {
   let query = supabase
     .from('invitados')
     .update(updateData)
-    .ilike('nombre', nombre.trim())
     .eq('bloqueado', false)
+
+  // Con `id` el link sobrevive a que el cliente renombre la invitacion.
+  if (id) {
+    query = query.eq('id', id)
+  } else {
+    query = query.ilike('nombre', (nombre as string).trim())
+  }
 
   if (url_boda) {
     query = query.eq('url_boda', normalizeUrl(url_boda))
@@ -74,8 +81,25 @@ export async function POST(req: NextRequest) {
   // Si no coincidió ninguna invitación (link sin ?para= o nombre nuevo),
   // creamos una nueva entrada para no perder la confirmación — siempre que
   // venga un nombre real (no el genérico "Invitado") y un url_boda.
+  if (matched === 0 && id) {
+    // Un link por id solo existe si la invitacion se creo en el panel: aqui
+    // NUNCA se recrea. O esta bloqueada, o la borraron.
+    const { data: fila } = await supabase
+      .from('invitados')
+      .select('bloqueado')
+      .eq('id', id)
+      .maybeSingle()
+
+    return Response.json(
+      fila
+        ? { ok: false, matched: 0, error: 'respuestas_cerradas' }
+        : { ok: false, matched: 0, error: 'invitacion_borrada' },
+      { status: fila ? 423 : 410, headers: CORS_HEADERS }
+    )
+  }
+
   if (matched === 0) {
-    const nombreLimpio = nombre.trim()
+    const nombreLimpio = (nombre as string).trim()
     const esGenerico = nombreLimpio.toLowerCase() === 'invitado'
 
     if (esGenerico || !url_boda) {
@@ -168,23 +192,27 @@ export async function GET(req: NextRequest) {
   const supabase    = createClient(supabaseUrl, supabaseKey)
 
   const url     = new URL(req.url)
+  const id      = url.searchParams.get('id')
   const nombre  = url.searchParams.get('nombre')
   const urlBoda = url.searchParams.get('url_boda')
 
-  if (!nombre || !urlBoda) {
+  if ((!id && !nombre) || !urlBoda) {
     return Response.json(
-      { error: 'nombre y url_boda son requeridos' },
+      { error: 'id (o nombre) y url_boda son requeridos' },
       { status: 400, headers: CORS_HEADERS }
     )
   }
 
-  const { data, error } = await supabase
+  // El `id` va primero: el nombre puede haber cambiado desde que se envio el
+  // link, y la invitacion necesita leer el nombre y los pases de AHORA.
+  let consulta = supabase
     .from('invitados')
-    .select('nombre,estado,pases,pases_menores,pases_confirmados,nombres_confirmados,nombres_asignados,bloqueado')
-    .ilike('nombre', nombre.trim())
+    .select('id,nombre,estado,pases,pases_menores,pases_confirmados,nombres_confirmados,nombres_asignados,bloqueado')
     .eq('url_boda', normalizeUrl(urlBoda))
-    .limit(1)
-    .maybeSingle()
+
+  consulta = id ? consulta.eq('id', id) : consulta.ilike('nombre', (nombre as string).trim())
+
+  const { data, error } = await consulta.limit(1).maybeSingle()
 
   if (error) {
     return Response.json({ error: error.message }, { status: 500, headers: CORS_HEADERS })

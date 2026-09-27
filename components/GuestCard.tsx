@@ -136,9 +136,16 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     || invitado.url_boda.includes('erika-y-marin')
     || invitado.url_boda.includes('xv-xanath')
     || invitado.url_boda.includes('sebastian-y-diana')
-  const link = usarToken
-    ? `${invitado.url_boda}?i=${encodeInvite(invitado.nombre, invitado.pases, menores)}`
-    : `${invitado.url_boda}?para=${encodeURIComponent(invitado.nombre)}&pases=${invitado.pases}` + (menores > 0 ? `&menores=${menores}` : '')
+  // El token lleva el NOMBRE dentro: si el cliente renombra la invitación, el
+  // link ya enviado deja de encontrarla y el invitado sigue viendo los datos
+  // viejos. Con `?c=<id>` el link apunta a la fila y sobrevive al renombrado.
+  const usarId = invitado.url_boda.includes('erika-y-marin')
+
+  const link = usarId
+    ? `${invitado.url_boda}?c=${invitado.id}`
+    : usarToken
+      ? `${invitado.url_boda}?i=${encodeInvite(invitado.nombre, invitado.pases, menores)}`
+      : `${invitado.url_boda}?para=${encodeURIComponent(invitado.nombre)}&pases=${invitado.pases}` + (menores > 0 ? `&menores=${menores}` : '')
 
   const tieneTel = normalizarTelefono(invitado.telefono).length > 0
   const waHref = waLink(invitado.telefono, mensajeInvitacion(invitado.nombre, nombreBoda, link))
