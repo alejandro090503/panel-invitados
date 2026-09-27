@@ -97,3 +97,17 @@ body {
   .animate-in { animation: none; }
   * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* Botones de icono (lápiz, papelera).
+   El color de hover vive aquí y no en onMouseEnter/onMouseLeave: en Safari de
+   iOS el primer toque sobre un elemento con hover en JS solo simula el hover y
+   se traga el clic — el botón parecía no responder. `@media (hover: hover)`
+   deja el efecto solo donde hay ratón de verdad. */
+.btn-icono {
+  color: #8B7E63;
+  background: transparent;
+}
+@media (hover: hover) {
+  .btn-icono:hover { color: #876338; background: rgba(168,138,75,0.10); }
+  .btn-icono--peligro:hover { color: #B85042; background: rgba(184,80,66,0.08); }
+}

@@ -98,6 +98,9 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   const [editMenores, setEditMenores]   = useState(String(invitado.pases_menores || 0))
   const [editAsignados, setEditAsignados] = useState((invitado.nombres_asignados ?? []).join('\n'))
   const [error, setError]       = useState('')
+  /* Aviso de "¿seguro?" dentro de la tarjeta: `confirm()` no es fiable en
+     iPhone (Safari permite bloquear los dialogos y entonces devuelve false). */
+  const [aviso, setAviso] = useState<{ texto: string; etiqueta: string; accion: () => void } | null>(null)
 
   const menores = invitado.pases_menores || 0
   const asignados = invitado.nombres_asignados ?? []
@@ -159,21 +162,24 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   async function deleteGuest() {
     // Borrar es definitivo: el link ya enviado deja de encontrar el registro y,
     // si el invitado ya había respondido, esa respuesta se pierde.
-    let aviso = `¿Eliminar la invitación de ${invitado.nombre}?\n\n`
+    let texto = `¿Eliminar la invitación de ${invitado.nombre}?\n\n`
     if (invitado.estado === 'confirmado') {
       const quienes = (invitado.nombres_confirmados ?? []).filter(Boolean)
       const nConf = invitado.pases_confirmados || 0
-      aviso += `OJO: esta invitación YA ESTÁ CONFIRMADA (${nConf} ${nConf === 1 ? 'persona' : 'personas'}`
-      aviso += quienes.length ? `: ${quienes.join(', ')}` : ''
-      aviso += ').\nSi la borras, pierdes esa respuesta y no la vas a poder recuperar.\n\n'
+      texto += `OJO: esta invitación YA ESTÁ CONFIRMADA (${nConf} ${nConf === 1 ? 'persona' : 'personas'}`
+      texto += quienes.length ? `: ${quienes.join(', ')}` : ''
+      texto += ').\nSi la borras, pierdes esa respuesta y no la vas a poder recuperar.\n\n'
     } else if (invitado.estado === 'declino') {
-      aviso += 'OJO: esta invitación ya tiene respuesta registrada (no podrán asistir).\n'
-      aviso += 'Si la borras, pierdes ese registro.\n\n'
+      texto += 'OJO: esta invitación ya tiene respuesta registrada (no podrán asistir).\n'
+      texto += 'Si la borras, pierdes ese registro.\n\n'
     }
-    aviso += 'Si ya enviaste el link, dejará de funcionar: al abrirlo no encontrará la invitación '
-    aviso += 'y no van a poder confirmar.\n\n¿Continuar?'
+    texto += 'Si ya enviaste el link, dejará de funcionar: al abrirlo no encontrará la invitación '
+    texto += 'y no van a poder confirmar.'
 
-    if (!confirm(aviso)) return
+    setAviso({ texto, etiqueta: 'Sí, eliminar', accion: borrarAhora })
+  }
+
+  async function borrarAhora() {
     setDeleting(true)
     // Lápida ANTES del borrado: marca que esta invitación se borró a propósito
     // para que una confirmación posterior no la reviva. Solo surte efecto en
@@ -252,29 +258,40 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     const cambioCupos = nuevosPases !== invitado.pases || nuevosMenores !== (invitado.pases_menores || 0)
     const cambioNombres = tieneAsignados &&
       nuevosAsignados.join('|') !== (invitado.nombres_asignados ?? []).join('|')
+    const avisos: string[] = []
     if (yaRespondio && (cambioCupos || cambioNombres)) {
       const total = nuevosPases + nuevosMenores
-      const ok = confirm(
+      avisos.push(
         `Esta invitación ya tiene respuesta (${LABEL[invitado.estado].toLowerCase()}) con ` +
-        `${invitado.pases_confirmados || 0} confirmado(s).\n\n` +
+        `${invitado.pases_confirmados || 0} confirmado(s).\n` +
         (cambioNombres
-          ? 'Vas a cambiar los nombres asignados. Los que confirmaron y ya no estén en la lista dejarán de aparecer como asistentes.\n\n'
-          : `Vas a cambiar los lugares a ${total}. Si quedan por debajo de lo ya confirmado, tendrán que responder de nuevo.\n\n`) +
-        'Conviene avisarles para que vuelvan a abrir su link.\n\n¿Continuar?'
+          ? 'Vas a cambiar los nombres asignados. Los que confirmaron y ya no estén en la lista dejarán de aparecer como asistentes.'
+          : `Vas a cambiar los lugares a ${total}. Si quedan por debajo de lo ya confirmado, tendrán que responder de nuevo.`) +
+        '\nConviene avisarles para que vuelvan a abrir su link.'
       )
-      if (!ok) return
     }
-    // El link de la invitación viaja con ?para=<nombre> y el API empareja al
-    // invitado por nombre exacto: si cambia, los links ya enviados dejan de
-    // encontrar este registro y hay que volver a compartirlos.
-    if (nuevoNombre !== invitado.nombre) {
-      const ok = confirm(
-        `Vas a cambiar el nombre de "${invitado.nombre}" a "${nuevoNombre}".\n\n` +
+    // En las bodas con link por nombre (?para= o el token), el link ya enviado
+    // deja de encontrar la invitación si el nombre cambia. Con `?c=<id>` no
+    // pasa: el link apunta a la fila y sobrevive al renombrado.
+    if (nuevoNombre !== invitado.nombre && !usarId) {
+      avisos.push(
+        `Vas a cambiar el nombre de "${invitado.nombre}" a "${nuevoNombre}".\n` +
         'El link que ya hayas enviado con el nombre anterior dejará de funcionar. ' +
-        'Tendrás que volver a compartir el link nuevo.\n\n¿Continuar?'
+        'Tendrás que volver a compartir el link nuevo.'
       )
-      if (!ok) return
     }
+    if (avisos.length > 0) {
+      setAviso({
+        texto: avisos.join('\n\n'),
+        etiqueta: 'Guardar de todos modos',
+        accion: () => { void aplicarCambios(cambios, nuevoNombre) },
+      })
+      return
+    }
+    await aplicarCambios(cambios, nuevoNombre)
+  }
+
+  async function aplicarCambios(cambios: Record<string, unknown>, nuevoNombre: string) {
     setSaving(true)
     setError('')
     const { error: err } = await supabase
@@ -413,6 +430,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             )}
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={saveEdit}
                 disabled={saving}
                 className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
@@ -421,7 +439,8 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                 {saving ? 'Guardando…' : 'Guardar'}
               </button>
               <button
-                onClick={() => { setEditing(false); setError('') }}
+                type="button"
+                onClick={() => { setEditing(false); setError(''); setAviso(null) }}
                 disabled={saving}
                 className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
                 style={{ background: 'rgba(255,252,246,0.6)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }}
@@ -493,7 +512,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
       </div>
 
       {/* Link preview */}
-      {!editing && (
+      {!editing && !aviso && (
         <div className="hidden lg:block flex-1 min-w-0">
           <p className="text-xs truncate font-mono" style={{ color: '#A89876' }} title={link}>
             {link.length > 55 ? link.slice(0, 55) + '…' : link}
@@ -502,7 +521,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
       )}
 
       {/* Acciones */}
-      {!editing && (
+      {!editing && !aviso && (
         <div className="flex items-center gap-2 shrink-0">
           <a
             href={waHref}
@@ -518,6 +537,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
           </a>
 
           <button
+            type="button"
             onClick={copyLink}
             aria-label="Copiar link de invitación"
             title="Copiar link"
@@ -538,10 +558,8 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             onClick={startEdit}
             aria-label={`Editar nombre y WhatsApp de ${invitado.nombre}`}
             title="Editar nombre y WhatsApp"
-            className="p-2 rounded-xl transition-all duration-200 active:scale-95"
-            style={{ color: '#8B7E63' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#876338'; e.currentTarget.style.background = 'rgba(168,138,75,0.10)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#8B7E63'; e.currentTarget.style.background = 'transparent' }}
+            type="button"
+            className="btn-icono p-2 rounded-xl transition-all duration-200 active:scale-95"
           >
             <Pencil size={15} strokeWidth={1.8} />
           </button>
@@ -551,13 +569,42 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             disabled={deleting}
             aria-label={`Eliminar invitación de ${invitado.nombre}`}
             title="Eliminar invitación"
-            className="p-2 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50"
-            style={{ color: '#8B7E63' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#B85042'; e.currentTarget.style.background = 'rgba(184,80,66,0.08)' }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = '#8B7E63'; e.currentTarget.style.background = 'transparent' }}
+            type="button"
+            className="btn-icono btn-icono--peligro p-2 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50"
           >
             <Trash2 size={15} strokeWidth={1.8} />
           </button>
+        </div>
+      )}
+
+      {aviso && (
+        <div
+          className="w-full sm:flex-1 min-w-0 rounded-xl px-3 py-3 flex flex-col gap-2"
+          style={{ background: 'rgba(184,80,66,0.06)', border: '1px solid rgba(184,80,66,0.28)' }}
+          role="alertdialog"
+          aria-label="Confirmar acción"
+        >
+          <p className="text-xs leading-relaxed" style={{ color: '#7A3B31', whiteSpace: 'pre-line' }}>
+            {aviso.texto}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => { const seguir = aviso.accion; setAviso(null); seguir() }}
+              className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
+              style={{ background: '#B85042', color: '#FFFCF6' }}
+            >
+              {aviso.etiqueta}
+            </button>
+            <button
+              type="button"
+              onClick={() => setAviso(null)}
+              className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
+              style={{ background: 'rgba(255,252,246,0.7)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }}
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       )}
     </div>
