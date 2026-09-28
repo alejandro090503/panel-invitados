@@ -53,14 +53,41 @@ export async function POST(req: NextRequest) {
   // Buscar por nombre (case-insensitive, trimmed).
   // `.eq('bloqueado', false)` deja fuera a las invitaciones bloqueadas: aunque
   // alguien tenga la página abierta desde antes, su envío ya no las toca.
+  // Dos invitaciones con el MISMO nombre en la misma boda hacen que el UPDATE
+  // por nombre escriba en las dos: la respuesta de una se copia en la otra y
+  // salen confirmaciones dobles. Se resuelve a que fila se escribe ANTES.
+  let idDestino = id
+  let duplicados = 0
+
+  if (!idDestino && url_boda) {
+    const { data: candidatas } = await supabase
+      .from('invitados')
+      .select('id,bloqueado')
+      .ilike('nombre', (nombre as string).trim())
+      .eq('url_boda', normalizeUrl(url_boda))
+      .order('created_at', { ascending: true })
+
+    // Si hay varias con el mismo nombre se escribe SOLO en la mas antigua (la
+    // invitacion original). Antes se escribia en todas y la respuesta de una
+    // aparecia tambien en la otra. No se rechaza el envio: hay bodas que ya
+    // tienen nombres repetidos y sus invitados deben poder confirmar.
+    if (candidatas && candidatas.length > 0) {
+      // Entre repetidas se prefiere una abierta; si todas estan bloqueadas se
+      // toma la primera y el flujo de abajo responde 423 como debe ser.
+      const abierta = candidatas.find(c => !c.bloqueado)
+      idDestino = (abierta ?? candidatas[0]).id
+      if (candidatas.length > 1) duplicados = candidatas.length
+    }
+  }
+
   let query = supabase
     .from('invitados')
     .update(updateData)
     .eq('bloqueado', false)
 
   // Con `id` el link sobrevive a que el cliente renombre la invitacion.
-  if (id) {
-    query = query.eq('id', id)
+  if (idDestino) {
+    query = query.eq('id', idDestino)
   } else {
     query = query.ilike('nombre', (nombre as string).trim())
   }
@@ -81,13 +108,13 @@ export async function POST(req: NextRequest) {
   // Si no coincidió ninguna invitación (link sin ?para= o nombre nuevo),
   // creamos una nueva entrada para no perder la confirmación — siempre que
   // venga un nombre real (no el genérico "Invitado") y un url_boda.
-  if (matched === 0 && id) {
+  if (matched === 0 && idDestino) {
     // Un link por id solo existe si la invitacion se creo en el panel: aqui
     // NUNCA se recrea. O esta bloqueada, o la borraron.
     const { data: fila } = await supabase
       .from('invitados')
       .select('bloqueado')
-      .eq('id', id)
+      .eq('id', idDestino)
       .maybeSingle()
 
     return Response.json(
@@ -183,7 +210,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ ok: true, matched: 0, created: true, estado }, { headers: CORS_HEADERS })
   }
 
-  return Response.json({ ok: true, matched, estado, pases_confirmados }, { headers: CORS_HEADERS })
+  return Response.json({ ok: true, matched, estado, pases_confirmados, ...(duplicados > 1 ? { duplicados } : {}) }, { headers: CORS_HEADERS })
 }
 
 export async function GET(req: NextRequest) {

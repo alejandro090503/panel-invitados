@@ -9,7 +9,7 @@ interface Props {
 export function ResumenCards({ invitados }: Props) {
   const invitaciones        = invitados.length
   const pendientes          = invitados.filter(i => i.estado === 'pendiente').length
-  const declinadas          = invitados.reduce((s, i) => {
+  const personasQueNoAsisten = invitados.reduce((s, i) => {
     const asignados = i.nombres_asignados ?? []
     if (asignados.length > 0) {
       // Modo nombres específicos: cuenta declinados individuales (incluso si el grupo está "confirmado")
@@ -32,7 +32,7 @@ export function ResumenCards({ invitados }: Props) {
     { label: 'Pases',                value: totalPases,          icon: Ticket,    color: '#876338', bg: 'rgba(135,99,56,0.10)'  },
     { label: 'Personas confirmadas', value: personasConfirmadas, icon: UserCheck, color: '#2F5A28', bg: 'rgba(107,155,100,0.12)' },
     { label: 'Pendientes',           value: pendientes,          icon: Clock,     color: '#6E4A18', bg: 'rgba(184,137,58,0.12)'  },
-    { label: 'Declinaron',           value: declinadas,          icon: XCircle,   color: '#7A2A1F', bg: 'rgba(184,80,66,0.10)'   },
+    { label: 'No asisten',           value: personasQueNoAsisten, icon: XCircle,   color: '#7A2A1F', bg: 'rgba(184,80,66,0.10)'   },
     // La tarjeta de Menores solo aparece en bodas que asignan pases para menores
     ...(totalMenores > 0
       ? [{ label: 'Menores', value: totalMenores, icon: Baby, color: '#6E4A18', bg: 'rgba(201,166,100,0.14)' }]
