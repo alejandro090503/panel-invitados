@@ -1,6 +1,7 @@
 'use client'
 import { Mail, Clock, XCircle, Ticket, UserCheck, Baby } from 'lucide-react'
 import type { Invitado } from '@/lib/supabase'
+import { asistencia } from '@/lib/asistencia'
 
 interface Props {
   invitados: Invitado[]
@@ -9,22 +10,10 @@ interface Props {
 export function ResumenCards({ invitados }: Props) {
   const invitaciones        = invitados.length
   const pendientes          = invitados.filter(i => i.estado === 'pendiente').length
-  const personasQueNoAsisten = invitados.reduce((s, i) => {
-    const asignados = i.nombres_asignados ?? []
-    if (asignados.length > 0) {
-      // Modo nombres específicos: cuenta declinados individuales (incluso si el grupo está "confirmado")
-      if (i.estado === 'pendiente') return s
-      if (i.estado === 'declino')   return s + asignados.length
-      const conf = (i.nombres_confirmados ?? []).length
-      return s + Math.max(0, asignados.length - conf)
-    }
-    // Modo estándar: solo cuenta cuando todo el grupo declinó
-    return i.estado === 'declino' ? s + i.pases + (i.pases_menores || 0) : s
-  }, 0)
+  // Personas, contadas con el MISMO criterio que las palomitas de cada tarjeta.
+  const personasQueNoAsisten = invitados.reduce((s, i) => s + asistencia(i).noAsisten, 0)
   const totalPases          = invitados.reduce((s, i) => s + i.pases + (i.pases_menores || 0), 0)
-  const personasConfirmadas = invitados
-    .filter(i => i.estado === 'confirmado')
-    .reduce((s, i) => s + (i.pases_confirmados || i.pases), 0)
+  const personasConfirmadas = invitados.reduce((s, i) => s + asistencia(i).asisten, 0)
   const totalMenores        = invitados.reduce((s, i) => s + (i.pases_menores || 0), 0)
 
   const cards = [
@@ -32,7 +21,7 @@ export function ResumenCards({ invitados }: Props) {
     { label: 'Pases',                value: totalPases,          icon: Ticket,    color: '#876338', bg: 'rgba(135,99,56,0.10)'  },
     { label: 'Personas confirmadas', value: personasConfirmadas, icon: UserCheck, color: '#2F5A28', bg: 'rgba(107,155,100,0.12)' },
     { label: 'Pendientes',           value: pendientes,          icon: Clock,     color: '#6E4A18', bg: 'rgba(184,137,58,0.12)'  },
-    { label: 'No asisten',           value: personasQueNoAsisten, icon: XCircle,   color: '#7A2A1F', bg: 'rgba(184,80,66,0.10)'   },
+    { label: 'Personas que no asisten', value: personasQueNoAsisten, icon: XCircle,   color: '#7A2A1F', bg: 'rgba(184,80,66,0.10)'   },
     // La tarjeta de Menores solo aparece en bodas que asignan pases para menores
     ...(totalMenores > 0
       ? [{ label: 'Menores', value: totalMenores, icon: Baby, color: '#6E4A18', bg: 'rgba(201,166,100,0.14)' }]

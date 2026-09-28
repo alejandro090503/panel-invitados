@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import type { Invitado } from '@/lib/supabase'
 import { GuestCard } from './GuestCard'
 import { ResumenCards } from './ResumenCards'
+import { asistencia } from '@/lib/asistencia'
 import { AddGuestForm } from './AddGuestForm'
 import { ListaConfirmados } from './ListaConfirmados'
 
@@ -52,13 +53,16 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
     return () => { supabase.removeChannel(channel) }
   }, [fetchInvitados, urlBoda])
 
-  const filtered = filter === 'todos' ? invitados : invitados.filter(i => i.estado === filter)
+  const filtered =
+    filter === 'todos'   ? invitados :
+    filter === 'declino' ? invitados.filter(i => asistencia(i).noAsisten > 0) :
+    invitados.filter(i => i.estado === filter)
 
   const filters: Array<{ key: typeof filter; label: string }> = [
     { key: 'todos',     label: 'Todas'       },
     { key: 'pendiente', label: 'Pendientes'  },
     { key: 'confirmado',label: 'Confirmadas' },
-    { key: 'declino',   label: 'Declinaron'  },
+    { key: 'declino',   label: 'No asisten'  },
   ]
 
   const usaMenores = urlBoda.includes('mariana-y-pedro') || urlBoda.includes('alejandro-y-mayreli') || urlBoda.includes('xv-melissa') || urlBoda.includes('hector-y-cecilia') || urlBoda.includes('xv-ailin') || urlBoda.includes('laura-y-jorge') || urlBoda.includes('dulce-y-david') || urlBoda.includes('zeltzin-y-gabriel') || urlBoda.includes('xv-mia-psi') || urlBoda.includes('neidy-y-cesar')
@@ -96,7 +100,9 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
             {f.label}
             {f.key !== 'todos' && (
               <span className="ml-1.5 opacity-70 tabular-nums">
-                {invitados.filter(i => i.estado === f.key).length}
+                {f.key === 'declino'
+                  ? invitados.filter(i => asistencia(i).noAsisten > 0).length
+                  : invitados.filter(i => i.estado === f.key).length}
               </span>
             )}
           </button>

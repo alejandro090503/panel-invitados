@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { asistencia } from '@/lib/asistencia'
 import { Users, Download, ChevronDown, ChevronUp } from 'lucide-react'
 import jsPDF from 'jspdf'
 import type { Invitado } from '@/lib/supabase'
@@ -86,8 +87,9 @@ export function ListaConfirmados({ invitados, nombreBoda }: Props) {
         doc.setFont('helvetica', 'normal')
         doc.setFontSize(9)
         doc.setTextColor(139, 126, 99)
-        const totalPersonas = inv.pases + (inv.pases_menores || 0)
-        const subt = `(${inv.pases_confirmados || 0} de ${totalPersonas} ${totalPersonas === 1 ? 'persona' : 'personas'})`
+        // La cuenta sale del mismo sitio que la lista de nombres de abajo
+        const cuenta = asistencia(inv)
+        const subt = `(${cuenta.asisten} de ${cuenta.total} ${cuenta.total === 1 ? 'persona' : 'personas'})`
         const w = doc.getTextWidth(inv.nombre)
         doc.text(subt, margin + w + 8, y)
         y += 14
@@ -191,8 +193,8 @@ export function ListaConfirmados({ invitados, nombreBoda }: Props) {
                       </p>
                       <span className="text-xs tabular-nums" style={{ color: '#8B7E63' }}>
                         {(() => {
-                          const total = inv.pases + (inv.pases_menores || 0)
-                          return `${inv.pases_confirmados || 0} de ${total} ${total === 1 ? 'persona' : 'personas'}`
+                          const c = asistencia(inv)
+                          return `${c.asisten} de ${c.total} ${c.total === 1 ? 'persona' : 'personas'}`
                         })()}
                       </span>
                     </div>
