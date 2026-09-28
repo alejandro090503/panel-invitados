@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase'
 import type { Invitado } from '@/lib/supabase'
 import { GuestCard } from './GuestCard'
 import { ResumenCards } from './ResumenCards'
-import { asistencia } from '@/lib/asistencia'
 import { AddGuestForm } from './AddGuestForm'
 import { ListaConfirmados } from './ListaConfirmados'
 
@@ -53,16 +52,23 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
     return () => { supabase.removeChannel(channel) }
   }, [fetchInvitados, urlBoda])
 
+  // Solo Veronica y Pedro (lo pidio su clienta): la pestaña Declinaron incluye
+  // tambien las invitaciones confirmadas donde alguien de la familia no va.
+  const bajasParciales = urlBoda.includes('veronica-y-pedro')
+  const tieneBaja = (i: Invitado) =>
+    i.estado === 'declino' ||
+    (bajasParciales && i.estado === 'confirmado' &&
+      (i.nombres_confirmados ?? []).length < (i.nombres_asignados ?? []).length)
   const filtered =
     filter === 'todos'   ? invitados :
-    filter === 'declino' ? invitados.filter(i => asistencia(i).noAsisten > 0) :
+    filter === 'declino' ? invitados.filter(tieneBaja) :
     invitados.filter(i => i.estado === filter)
 
   const filters: Array<{ key: typeof filter; label: string }> = [
     { key: 'todos',     label: 'Todas'       },
     { key: 'pendiente', label: 'Pendientes'  },
     { key: 'confirmado',label: 'Confirmadas' },
-    { key: 'declino',   label: 'No asisten'  },
+    { key: 'declino',   label: 'Declinaron'  },
   ]
 
   const usaMenores = urlBoda.includes('mariana-y-pedro') || urlBoda.includes('alejandro-y-mayreli') || urlBoda.includes('xv-melissa') || urlBoda.includes('hector-y-cecilia') || urlBoda.includes('xv-ailin') || urlBoda.includes('laura-y-jorge') || urlBoda.includes('dulce-y-david') || urlBoda.includes('zeltzin-y-gabriel') || urlBoda.includes('xv-mia-psi') || urlBoda.includes('neidy-y-cesar')
@@ -70,7 +76,7 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
 
   return (
     <div className="space-y-6">
-      <ResumenCards invitados={invitados} />
+      <ResumenCards invitados={invitados} confiarEnPases={urlBoda.includes('stephany-y-alberto')} />
 
       <AddGuestForm urlBoda={urlBoda.trim().replace(/\/+$/, '')} onAdded={fetchInvitados} showMenores={usaMenores} nombresMode={usaNombres} />
 
@@ -100,9 +106,7 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
             {f.label}
             {f.key !== 'todos' && (
               <span className="ml-1.5 opacity-70 tabular-nums">
-                {f.key === 'declino'
-                  ? invitados.filter(i => asistencia(i).noAsisten > 0).length
-                  : invitados.filter(i => i.estado === f.key).length}
+                {f.key === 'declino' ? invitados.filter(tieneBaja).length : invitados.filter(i => i.estado === f.key).length}
               </span>
             )}
           </button>

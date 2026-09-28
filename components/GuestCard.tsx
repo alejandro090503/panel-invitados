@@ -4,7 +4,6 @@ import { Copy, Check, Trash2, Users, UserCheck, MessageCircle, Pencil } from 'lu
 import type { Invitado, EstadoInvitado } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 import { waLink, mensajeInvitacion, normalizarTelefono } from '@/lib/whatsapp'
-import { emparejarNombres, asistencia, type Emparejado } from '@/lib/asistencia'
 import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
 
 interface Props {
@@ -24,6 +23,58 @@ const LABEL: Record<EstadoInvitado, string> = {
   pendiente:  'Pendiente',
   confirmado: 'Confirmado',
   declino:    'Declinó',
+}
+
+// Clave para comparar el nombre asignado contra el que escribió el invitado.
+// Sin acentos: el invitado teclea "Diana Duran Trejo" y en la invitación está
+// "Diana Durán Trejo"; comparando tal cual salía ✗ como si hubiera declinado.
+// También ignora mayúsculas y espacios repetidos.
+function claveNombre(n: string): string {
+  return n
+    .normalize('NFD').replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Empareja los nombres asignados con los que el invitado dejó registrados.
+//
+// No siempre son el mismo texto: quien confirmó ANTES de que se le asignaran
+// los nombres escribió el suyo a mano, y suele escribirlo más corto —
+// "Itzel Macias Marin" por "Jennifer Itzel Macias Marin". Comparando tal cual
+// salía con ✗ como si hubiera declinado, y el cliente no sabía qué contestó.
+//
+// Dos pasadas: primero los que coinciden exacto (sin acentos), y solo con los
+// que sobran se busca una coincidencia por palabras. Se exige que un nombre
+// contenga TODAS las palabras del otro y compartan al menos dos, para no
+// confundir a dos invitados con nombres parecidos.
+type Emparejado = { ok: boolean; comoEscribio?: string }
+
+function emparejarNombres(asignados: string[], confirmados: string[]): Emparejado[] {
+  const conf = confirmados.map(c => ({ original: c, palabras: claveNombre(c).split(' ').filter(Boolean), usado: false }))
+  const out: Emparejado[] = asignados.map(() => ({ ok: false }))
+
+  asignados.forEach((a, i) => {
+    const clave = claveNombre(a)
+    const exacto = conf.find(c => !c.usado && c.palabras.join(' ') === clave)
+    if (exacto) { exacto.usado = true; out[i] = { ok: true } }
+  })
+
+  asignados.forEach((a, i) => {
+    if (out[i].ok) return
+    const palabrasA = claveNombre(a).split(' ').filter(Boolean)
+    let mejor: typeof conf[number] | null = null
+    let mejorComunes = 0
+    for (const c of conf) {
+      if (c.usado) continue
+      const comunes = palabrasA.filter(p => c.palabras.includes(p)).length
+      const unoContieneAlOtro = comunes === palabrasA.length || comunes === c.palabras.length
+      if (comunes >= 2 && unoContieneAlOtro && comunes > mejorComunes) { mejor = c; mejorComunes = comunes }
+    }
+    if (mejor) { mejor.usado = true; out[i] = { ok: true, comoEscribio: mejor.original } }
+  })
+
+  return out
 }
 
 // Codifica nombre|pases|menores en un token base64url (solo A-Z a-z 0-9 - _).
@@ -267,10 +318,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     onDeleted() // refresca la lista
   }
 
-  // El numero sale del mismo emparejado que las palomitas: si no, la tarjeta
-  // podia decir "2 de 2 asisten" con una de las dos personas tachada.
-  const cuenta = asistencia(invitado)
-  const confirmados = cuenta.asisten
+  const confirmados = invitado.pases_confirmados || 0
 
   const inputStyle: React.CSSProperties = {
     background: 'rgba(255,252,246,0.9)',
@@ -416,7 +464,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
               {invitado.estado === 'confirmado' && (
                 <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#2F5A28' }}>
                   <UserCheck size={11} strokeWidth={2} />
-                  {confirmados} de {cuenta.total} asisten
+                  {confirmados} de {invitado.pases + menores} asisten
                 </span>
               )}
               <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${BADGE[invitado.estado]}`}>
@@ -432,9 +480,14 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
 
             {tieneAsignados && (() => {
               const todosNo = invitado.estado === 'declino'
+              const todosSi = invitado.url_boda.includes('stephany-y-alberto')
+                && invitado.estado === 'confirmado'
+                && (invitado.pases_confirmados || 0) >= asignados.length
               const pares = todosNo
                 ? asignados.map(() => ({ ok: false }) as Emparejado)
-                : emparejarNombres(asignados, invitado.nombres_confirmados ?? [])
+                : todosSi
+                  ? asignados.map(() => ({ ok: true }) as Emparejado)
+                  : emparejarNombres(asignados, invitado.nombres_confirmados ?? [])
               return (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {asignados.map((n, i) => {
