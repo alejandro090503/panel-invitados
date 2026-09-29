@@ -480,8 +480,10 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
 
             {tieneAsignados && (() => {
               const todosNo = invitado.estado === 'declino'
-              const todosSi = invitado.url_boda.includes('stephany-y-alberto')
-                && invitado.estado === 'confirmado'
+              // Si confirmo todos sus lugares nadie falta, aunque el nombre que
+              // quedo guardado no sea identico al asignado (lo escribieron a mano
+              // o el cliente lo corrigio despues de que confirmaran).
+              const todosSi = invitado.estado === 'confirmado'
                 && (invitado.pases_confirmados || 0) >= asignados.length
               const pares = todosNo
                 ? asignados.map(() => ({ ok: false }) as Emparejado)

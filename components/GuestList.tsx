@@ -76,7 +76,7 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
 
   return (
     <div className="space-y-6">
-      <ResumenCards invitados={invitados} confiarEnPases={urlBoda.includes('stephany-y-alberto')} />
+      <ResumenCards invitados={invitados} />
 
       <AddGuestForm urlBoda={urlBoda.trim().replace(/\/+$/, '')} onAdded={fetchInvitados} showMenores={usaMenores} nombresMode={usaNombres} />
 
