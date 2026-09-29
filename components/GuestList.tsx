@@ -6,6 +6,7 @@ import { GuestCard } from './GuestCard'
 import { ResumenCards } from './ResumenCards'
 import { AddGuestForm } from './AddGuestForm'
 import { ListaConfirmados } from './ListaConfirmados'
+import { declinadosDe, sinUsarDe } from '@/lib/conteo'
 
 interface Props {
   urlBoda: string
@@ -15,7 +16,7 @@ interface Props {
 export function GuestList({ urlBoda, nombreBoda }: Props) {
   const [invitados, setInvitados] = useState<Invitado[]>([])
   const [loading, setLoading]     = useState(true)
-  const [filter, setFilter]       = useState<'todos' | 'pendiente' | 'confirmado' | 'declino'>('todos')
+  const [filter, setFilter]       = useState<'todos' | 'pendiente' | 'confirmado' | 'declino' | 'sin_usar'>('todos')
 
   const fetchInvitados = useCallback(async () => {
     const normalizedUrl = urlBoda.trim().replace(/\/+$/, '')
@@ -52,16 +53,15 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
     return () => { supabase.removeChannel(channel) }
   }, [fetchInvitados, urlBoda])
 
-  // Solo Veronica y Pedro (lo pidio su clienta): la pestaña Declinaron incluye
-  // tambien las invitaciones confirmadas donde alguien de la familia no va.
-  const bajasParciales = urlBoda.includes('veronica-y-pedro')
-  const tieneBaja = (i: Invitado) =>
-    i.estado === 'declino' ||
-    (bajasParciales && i.estado === 'confirmado' &&
-      (i.nombres_confirmados ?? []).length < (i.nombres_asignados ?? []).length)
+  // La pestaña Declinaron muestra a TODAS las invitaciones que suman en la
+  // tarjeta "Personas que declinaron" (también las familias donde alguien no va).
+  const tieneBaja  = (i: Invitado) => declinadosDe(i) > 0
+  const tieneLibre = (i: Invitado) => sinUsarDe(i) > 0
+  const nSinUsar   = invitados.filter(tieneLibre).length
   const filtered =
-    filter === 'todos'   ? invitados :
-    filter === 'declino' ? invitados.filter(tieneBaja) :
+    filter === 'todos'    ? invitados :
+    filter === 'declino'  ? invitados.filter(tieneBaja) :
+    filter === 'sin_usar' ? invitados.filter(tieneLibre) :
     invitados.filter(i => i.estado === filter)
 
   const filters: Array<{ key: typeof filter; label: string }> = [
@@ -69,6 +69,7 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
     { key: 'pendiente', label: 'Pendientes'  },
     { key: 'confirmado',label: 'Confirmadas' },
     { key: 'declino',   label: 'Declinaron'  },
+    ...(nSinUsar > 0 ? [{ key: 'sin_usar' as const, label: 'Lugares sin usar' }] : []),
   ]
 
   const usaMenores = urlBoda.includes('mariana-y-pedro') || urlBoda.includes('alejandro-y-mayreli') || urlBoda.includes('xv-melissa') || urlBoda.includes('hector-y-cecilia') || urlBoda.includes('xv-ailin') || urlBoda.includes('laura-y-jorge') || urlBoda.includes('dulce-y-david') || urlBoda.includes('zeltzin-y-gabriel') || urlBoda.includes('xv-mia-psi') || urlBoda.includes('neidy-y-cesar')
@@ -106,7 +107,7 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
             {f.label}
             {f.key !== 'todos' && (
               <span className="ml-1.5 opacity-70 tabular-nums">
-                {f.key === 'declino' ? invitados.filter(tieneBaja).length : invitados.filter(i => i.estado === f.key).length}
+                {f.key === 'declino' ? invitados.filter(tieneBaja).length : f.key === 'sin_usar' ? nSinUsar : invitados.filter(i => i.estado === f.key).length}
               </span>
             )}
           </button>

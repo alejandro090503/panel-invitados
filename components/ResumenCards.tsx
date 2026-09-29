@@ -1,34 +1,22 @@
 'use client'
-import { Mail, Clock, XCircle, Ticket, UserCheck, Baby } from 'lucide-react'
+import { Mail, Clock, XCircle, Ticket, UserCheck, Baby, CircleDashed } from 'lucide-react'
 import type { Invitado } from '@/lib/supabase'
+import { lugares, confirmadosDe, declinadosDe, sinUsarDe } from '@/lib/conteo'
 
 interface Props {
   invitados: Invitado[]
 }
 
-// Todas las tarjetas (menos "Invitaciones") cuentan PERSONAS, para que
-// confirmadas + pendientes + declinaron = pases. Antes "Pendientes" contaba
-// invitaciones y las demás personas: los números nunca cuadraban.
-function lugares(i: Invitado) {
-  return i.pases + (i.pases_menores || 0)
-}
-function confirmadosDe(i: Invitado) {
-  return i.estado === 'confirmado' ? (i.pases_confirmados || lugares(i)) : 0
-}
-
+// Todas las tarjetas (menos "Invitaciones") cuentan PERSONAS:
+// confirmadas + pendientes + declinaron + lugares sin usar = pases.
 export function ResumenCards({ invitados }: Props) {
+  const suma = (f: (i: Invitado) => number) => invitados.reduce((s, i) => s + f(i), 0)
   const invitaciones        = invitados.length
-  const totalPases          = invitados.reduce((s, i) => s + lugares(i), 0)
-  const personasConfirmadas = invitados.reduce((s, i) => s + confirmadosDe(i), 0)
-  const pendientes          = invitados
-    .filter(i => i.estado === 'pendiente')
-    .reduce((s, i) => s + lugares(i), 0)
-  // Declinó toda la invitación, o confirmó menos lugares de los que tenía.
-  const declinadas          = invitados.reduce((s, i) => {
-    if (i.estado === 'declino')    return s + lugares(i)
-    if (i.estado === 'confirmado') return s + Math.max(0, lugares(i) - confirmadosDe(i))
-    return s
-  }, 0)
+  const totalPases          = suma(lugares)
+  const personasConfirmadas = suma(confirmadosDe)
+  const pendientes          = suma(i => (i.estado === 'pendiente' ? lugares(i) : 0))
+  const declinadas          = suma(declinadosDe)
+  const sinUsar             = suma(sinUsarDe)
   const totalMenores        = invitados.reduce((s, i) => s + (i.pases_menores || 0), 0)
 
   const cards = [
@@ -37,6 +25,10 @@ export function ResumenCards({ invitados }: Props) {
     { label: 'Personas confirmadas', value: personasConfirmadas, icon: UserCheck, color: '#2F5A28', bg: 'rgba(107,155,100,0.12)' },
     { label: 'Personas pendientes',  value: pendientes,          icon: Clock,     color: '#6E4A18', bg: 'rgba(184,137,58,0.12)'  },
     { label: 'Personas que declinaron', value: declinadas,          icon: XCircle,   color: '#7A2A1F', bg: 'rgba(184,80,66,0.10)'   },
+    // Solo aparece si alguna familia confirmó menos lugares de los que tenía
+    ...(sinUsar > 0
+      ? [{ label: 'Lugares sin usar', value: sinUsar, icon: CircleDashed, color: '#8B7E63', bg: 'rgba(139,126,99,0.12)' }]
+      : []),
     // La tarjeta de Menores solo aparece en bodas que asignan pases para menores
     ...(totalMenores > 0
       ? [{ label: 'Menores', value: totalMenores, icon: Baby, color: '#6E4A18', bg: 'rgba(201,166,100,0.14)' }]
@@ -44,7 +36,7 @@ export function ResumenCards({ invitados }: Props) {
   ]
 
   return (
-    <div className={`grid grid-cols-2 sm:grid-cols-3 ${cards.length >= 6 ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3`}>
+    <div className={`grid grid-cols-2 sm:grid-cols-3 ${cards.length >= 7 ? 'lg:grid-cols-7' : cards.length >= 6 ? 'lg:grid-cols-6' : 'lg:grid-cols-5'} gap-3`}>
       {cards.map(({ label, value, icon: Icon, color, bg }) => (
         <div
           key={label}
