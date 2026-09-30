@@ -255,6 +255,23 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
       }
     }
 
+    // Si ya confirmaron MÁS lugares de los que ahora tendrá, los confirmados se
+    // recortan al nuevo cupo (primero quienes siguen en la lista asignada). Sin
+    // esto "Personas confirmadas" quedaba por encima de "Pases" y no cuadraba.
+    const nuevoCupo = nuevosPases + nuevosMenores
+    const confPrevios = invitado.nombres_confirmados ?? []
+    if (invitado.estado === 'confirmado' && (invitado.pases_confirmados || 0) > nuevoCupo) {
+      let conservar = confPrevios
+      if (tieneAsignados) {
+        const pares = emparejarNombres(nuevosAsignados, confPrevios)
+        const siguen = pares.flatMap((par, i) => (par.ok ? [par.comoEscribio ?? nuevosAsignados[i]] : []))
+        const claves = new Set(siguen.map(claveNombre))
+        conservar = [...siguen, ...confPrevios.filter(n => !claves.has(claveNombre(n)))]
+      }
+      cambios.nombres_confirmados = conservar.slice(0, nuevoCupo)
+      cambios.pases_confirmados = nuevoCupo
+    }
+
     // Si ya respondieron, avisar antes de alterar cupos o nombres: lo que ya
     // confirmaron puede quedar fuera de lo que ahora tienen asignado.
     const yaRespondio = invitado.estado !== 'pendiente'
