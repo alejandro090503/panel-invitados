@@ -149,6 +149,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   const usarId = invitado.url_boda.includes('erika-y-marin')
     || invitado.url_boda.includes('xv-leticia')
     || invitado.url_boda.includes('mauricio-y-brenda')
+    || invitado.url_boda.includes('omar-y-cari')
 
   const link = usarId
     ? `${invitado.url_boda}?c=${invitado.id}`
