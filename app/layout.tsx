@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Inter } from 'next/font/google'
 import './globals.css'
+import { PrefsProvider, SCRIPT_TEMA_INICIAL } from '@/lib/prefs'
+import { PrefsFlotante } from '@/components/PrefsFlotante'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,8 +26,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${cormorant.variable} h-full`}>
-      <body className="min-h-dvh antialiased">{children}</body>
+    <html lang="es" className={`${inter.variable} ${cormorant.variable} h-full`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA_INICIAL }} />
+      </head>
+      <body className="min-h-dvh antialiased">
+        <PrefsProvider>
+          {children}
+          <PrefsFlotante />
+        </PrefsProvider>
+      </body>
     </html>
   )
 }

@@ -29,13 +29,13 @@ export default function Home() {
       <div className="max-w-4xl mx-auto mb-8">
         <div className="glass rounded-3xl px-6 py-6 flex items-center justify-between">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.22em] mb-1" style={{ color: '#A88A4B' }}>
+            <p className="text-[10px] uppercase tracking-[0.22em] mb-1" style={{ color: 'var(--gold-t)' }}>
               Elysium
             </p>
-            <h1 className="serif text-2xl font-semibold tracking-wide" style={{ color: '#3F2E1F' }}>
+            <h1 className="serif text-2xl font-semibold tracking-wide" style={{ color: 'var(--ink)' }}>
               Panel Admin
             </h1>
-            <p className="text-xs mt-1" style={{ color: '#8B7E63' }}>
+            <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
               Gestión de bodas y paneles de invitados
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function Home() {
         <AdminPanel />
       </div>
 
-      <p className="text-center text-xs mt-10" style={{ color: '#A88A4B', opacity: 0.6 }}>
+      <p className="text-center text-xs mt-10" style={{ color: 'var(--gold-t)', opacity: 0.6 }}>
         © {new Date().getFullYear()} Elysium Invitaciones
       </p>
     </main>

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { UserPlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
+import { usePrefs } from '@/lib/prefs'
 
 interface Props {
   urlBoda: string
@@ -11,11 +12,11 @@ interface Props {
   nombresMode?: boolean
 }
 
-const INPUT_CLASS = 'w-full rounded-xl px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 placeholder:text-[#C2B59A]'
+const INPUT_CLASS = 'w-full rounded-xl px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 placeholder:text-[var(--muted-3)]'
 const INPUT_STYLE: React.CSSProperties = {
-  background: 'rgba(255,252,246,0.85)',
-  border: '1px solid #D9CDB6',
-  color: '#3F2E1F',
+  background: 'rgb(var(--surface-rgb) / 0.85)',
+  border: '1px solid var(--line)',
+  color: 'var(--ink)',
 }
 
 export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMode = false }: Props) {
@@ -26,6 +27,7 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
   const [nombresAsignadosText, setNombresAsignadosText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const { tr, idioma } = usePrefs()
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -40,7 +42,7 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
         .map(s => s.trim())
         .filter(s => s.length > 0)
       if (nombresAsignados.length === 0) {
-        setError('Agrega al menos un nombre específico (uno por línea).')
+        setError(tr('Agrega al menos un nombre específico (uno por línea).', 'Add at least one specific name (one per line).'))
         return
       }
       safePases = nombresAsignados.length
@@ -54,7 +56,7 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
 
     try {
       if (await nombreYaExiste(urlBoda, nombreTrimmed)) {
-        setError(avisoNombreDuplicado(nombreTrimmed))
+        setError(avisoNombreDuplicado(nombreTrimmed, idioma))
         setLoading(false)
         return
       }
@@ -75,7 +77,7 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
 
       if (sbError) {
         console.error('Supabase insert error:', sbError)
-        setError(`Error al guardar: ${sbError.message}`)
+        setError(`${tr('Error al guardar', 'Could not save')}: ${sbError.message}`)
         setLoading(false)
         return
       }
@@ -97,23 +99,23 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
       onAdded()
     } catch (err) {
       console.error('Insert exception:', err)
-      setError('Error de conexión. Verifica tu internet e intenta de nuevo.')
+      setError(tr('Error de conexión. Verifica tu internet e intenta de nuevo.', 'Connection error. Check your internet and try again.'))
       setLoading(false)
     }
   }
 
   return (
     <form onSubmit={handleSubmit} noValidate className="glass rounded-2xl p-6">
-      <h2 className="serif text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: '#3F2E1F' }}>
-        <UserPlus size={18} strokeWidth={1.8} style={{ color: '#A88A4B' }} />
-        Nueva invitación
+      <h2 className="serif text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--ink)' }}>
+        <UserPlus size={18} strokeWidth={1.8} style={{ color: 'var(--gold-t)' }} />
+        {tr('Nueva invitación', 'New invitation')}
       </h2>
 
       <div className="flex flex-col sm:flex-row gap-3">
         {/* Nombre */}
         <div className="flex-1">
-          <label htmlFor="nombre" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
-            Nombre o familia
+          <label htmlFor="nombre" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
+            {tr('Nombre o familia', 'Name or family')}
           </label>
           <input
             id="nombre"
@@ -121,7 +123,7 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
             value={nombre}
             onChange={e => setNombre(e.target.value)}
             required
-            placeholder="Ej. Familia Pérez"
+            placeholder={tr('Ej. Familia Pérez', 'e.g. Smith Family')}
             autoComplete="off"
             className={INPUT_CLASS}
             style={INPUT_STYLE}
@@ -131,8 +133,8 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
         {/* Pases — oculto en modo nombres específicos */}
         {!nombresMode && (
           <div className="w-full sm:w-24">
-            <label htmlFor="pases" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
-              Pases
+            <label htmlFor="pases" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
+              {tr('Pases', 'Seats')}
             </label>
             <input
               id="pases"
@@ -150,8 +152,8 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
         {/* Pases menores (solo en bodas que usan menores) */}
         {showMenores && !nombresMode && (
           <div className="w-full sm:w-24">
-            <label htmlFor="menores" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
-              Menores
+            <label htmlFor="menores" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
+              {tr('Menores', 'Children')}
             </label>
             <input
               id="menores"
@@ -168,7 +170,7 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
 
         {/* WhatsApp del contacto (opcional) */}
         <div className="w-full sm:w-44">
-          <label htmlFor="telefono" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
+          <label htmlFor="telefono" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
             WhatsApp
           </label>
           <input
@@ -196,33 +198,33 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
               boxShadow: '0 4px 14px rgba(168,138,75,0.25)',
             }}
           >
-            {loading ? 'Guardando…' : 'Agregar'}
+            {loading ? tr('Guardando…', 'Saving…') : tr('Agregar', 'Add')}
           </button>
         </div>
       </div>
 
       {nombresMode && (
         <div className="mt-3">
-          <label htmlFor="nombres_asignados" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
-            Nombres específicos a confirmar (uno por línea)
+          <label htmlFor="nombres_asignados" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
+            {tr('Nombres específicos a confirmar (uno por línea)', 'Specific names to confirm (one per line)')}
           </label>
           <textarea
             id="nombres_asignados"
             value={nombresAsignadosText}
             onChange={e => setNombresAsignadosText(e.target.value)}
             rows={Math.max(2, nombresAsignadosText.split('\n').length)}
-            placeholder={'Ej:\nJuan Pérez\nMaría García\nLuis Pérez'}
+            placeholder={tr('Ej:\nJuan Pérez\nMaría García\nLuis Pérez', 'e.g.:\nJohn Smith\nMary Smith\nLuke Smith')}
             className={INPUT_CLASS}
             style={{ ...INPUT_STYLE, resize: 'vertical', minHeight: 80, fontFamily: 'inherit' }}
           />
-          <p className="text-[11px] mt-1.5" style={{ color: '#8B7E63' }}>
-            El invitado verá cada nombre con su propio botón Asistiré / No asistiré. Los pases se cuentan automáticamente.
+          <p className="text-[11px] mt-1.5" style={{ color: 'var(--muted)' }}>
+            {tr('El invitado verá cada nombre con su propio botón Asistiré / No asistiré. Los pases se cuentan automáticamente.', 'The guest will see each name with its own Attending / Not attending button. Seats are counted automatically.')}
           </p>
         </div>
       )}
 
       {error && (
-        <p role="alert" className="text-xs mt-2" style={{ color: '#B85042' }}>{error}</p>
+        <p role="alert" className="text-xs mt-2" style={{ color: 'var(--danger)' }}>{error}</p>
       )}
     </form>
   )

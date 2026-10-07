@@ -26,11 +26,11 @@ function generatePassword(nombre: string): string {
   return `${base}${year}`
 }
 
-const INPUT_CLASS = 'w-full rounded-xl px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 placeholder:text-[#C2B59A]'
+const INPUT_CLASS = 'w-full rounded-xl px-4 py-2.5 text-sm transition-all duration-200 focus:outline-none focus:ring-2 placeholder:text-[var(--muted-3)]'
 const INPUT_STYLE: React.CSSProperties = {
-  background: 'rgba(255,252,246,0.85)',
-  border: '1px solid #D9CDB6',
-  color: '#3F2E1F',
+  background: 'rgb(var(--surface-rgb) / 0.85)',
+  border: '1px solid var(--line)',
+  color: 'var(--ink)',
 }
 
 export function NewBodaForm({ onCreated }: Props) {
@@ -77,15 +77,15 @@ export function NewBodaForm({ onCreated }: Props) {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="glass rounded-2xl p-6">
-      <h2 className="serif text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: '#3F2E1F' }}>
-        <PlusCircle size={18} strokeWidth={1.8} style={{ color: '#A88A4B' }} />
+      <h2 className="serif text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--ink)' }}>
+        <PlusCircle size={18} strokeWidth={1.8} style={{ color: 'var(--gold-t)' }} />
         Nuevo panel
       </h2>
 
       <div className="flex flex-col gap-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="flex-1">
-            <label htmlFor="nombre-novios" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
+            <label htmlFor="nombre-novios" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
               Nombres de los novios
             </label>
             <input
@@ -102,7 +102,7 @@ export function NewBodaForm({ onCreated }: Props) {
           </div>
 
           <div className="flex-1">
-            <label htmlFor="url-boda" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: '#5D4A33' }}>
+            <label htmlFor="url-boda" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
               Link de la invitación
             </label>
             <input
@@ -125,12 +125,12 @@ export function NewBodaForm({ onCreated }: Props) {
             className="rounded-xl px-4 py-3 text-xs space-y-1.5"
             style={{ background: 'rgba(168,138,75,0.07)', border: '1px solid rgba(168,138,75,0.18)' }}
           >
-            <p style={{ color: '#5D4A33' }}>
-              <span className="font-semibold uppercase tracking-wider text-[10px] mr-1" style={{ color: '#A88A4B' }}>Link del panel</span>
+            <p style={{ color: 'var(--ink-2)' }}>
+              <span className="font-semibold uppercase tracking-wider text-[10px] mr-1" style={{ color: 'var(--gold-t)' }}>Link del panel</span>
               <span className="font-mono">{typeof window !== 'undefined' ? window.location.origin : ''}/{slug}</span>
             </p>
-            <p style={{ color: '#5D4A33' }}>
-              <span className="font-semibold uppercase tracking-wider text-[10px] mr-1" style={{ color: '#A88A4B' }}>Contraseña</span>
+            <p style={{ color: 'var(--ink-2)' }}>
+              <span className="font-semibold uppercase tracking-wider text-[10px] mr-1" style={{ color: 'var(--gold-t)' }}>Contraseña</span>
               <span className="font-mono">{password}</span>
             </p>
           </div>
@@ -153,7 +153,7 @@ export function NewBodaForm({ onCreated }: Props) {
       </div>
 
       {error && (
-        <p role="alert" className="text-xs mt-3" style={{ color: '#B85042' }}>{error}</p>
+        <p role="alert" className="text-xs mt-3" style={{ color: 'var(--danger)' }}>{error}</p>
       )}
     </form>
   )

@@ -7,6 +7,7 @@ import { ResumenCards } from './ResumenCards'
 import { AddGuestForm } from './AddGuestForm'
 import { ListaConfirmados } from './ListaConfirmados'
 import { declinadosDe, sinUsarDe } from '@/lib/conteo'
+import { usePrefs } from '@/lib/prefs'
 
 interface Props {
   urlBoda: string
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function GuestList({ urlBoda, nombreBoda }: Props) {
+  const { tr } = usePrefs()
   const [invitados, setInvitados] = useState<Invitado[]>([])
   const [loading, setLoading]     = useState(true)
   const [filter, setFilter]       = useState<'todos' | 'pendiente' | 'confirmado' | 'declino' | 'sin_usar'>('todos')
@@ -65,11 +67,11 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
     invitados.filter(i => i.estado === filter)
 
   const filters: Array<{ key: typeof filter; label: string }> = [
-    { key: 'todos',     label: 'Todas'       },
-    { key: 'pendiente', label: 'Pendientes'  },
-    { key: 'confirmado',label: 'Confirmadas' },
-    { key: 'declino',   label: 'Declinaron'  },
-    ...(nSinUsar > 0 ? [{ key: 'sin_usar' as const, label: 'Lugares sin usar' }] : []),
+    { key: 'todos',     label: tr('Todas', 'All') },
+    { key: 'pendiente', label: tr('Pendientes', 'Pending') },
+    { key: 'confirmado',label: tr('Confirmadas', 'Confirmed') },
+    { key: 'declino',   label: tr('Declinaron', 'Declined') },
+    ...(nSinUsar > 0 ? [{ key: 'sin_usar' as const, label: tr('Lugares sin usar', 'Unused seats') }] : []),
   ]
 
   const usaMenores = urlBoda.includes('mariana-y-pedro') || urlBoda.includes('alejandro-y-mayreli') || urlBoda.includes('xv-melissa') || urlBoda.includes('hector-y-cecilia') || urlBoda.includes('xv-ailin') || urlBoda.includes('laura-y-jorge') || urlBoda.includes('dulce-y-david') || urlBoda.includes('zeltzin-y-gabriel') || urlBoda.includes('xv-mia-psi') || urlBoda.includes('neidy-y-cesar') || urlBoda.includes('amanda-y-jorge') || urlBoda.includes('yasareth-y-luis')
@@ -84,7 +86,7 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
       <ListaConfirmados invitados={invitados} nombreBoda={nombreBoda} />
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar invitaciones">
+      <div className="flex flex-wrap gap-2" role="group" aria-label={tr('Filtrar invitaciones', 'Filter invitations')}>
         {filters.map(f => (
           <button
             key={f.key}
@@ -98,8 +100,8 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
                   boxShadow: '0 3px 12px rgba(168,138,75,0.32)',
                 }
               : {
-                  background: 'rgba(255,252,246,0.55)',
-                  color: '#876338',
+                  background: 'rgb(var(--surface-rgb) / 0.55)',
+                  color: 'var(--bronze-t)',
                   border: '1px solid rgba(168,138,75,0.25)',
                 }
             }
@@ -116,25 +118,25 @@ export function GuestList({ urlBoda, nombreBoda }: Props) {
 
       {/* Lista */}
       {loading ? (
-        <div className="space-y-3" aria-busy="true" aria-label="Cargando invitaciones">
+        <div className="space-y-3" aria-busy="true" aria-label={tr('Cargando invitaciones', 'Loading invitations')}>
           {[1,2,3].map(i => (
-            <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: 'rgba(255,252,246,0.5)' }} />
+            <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: 'rgb(var(--surface-rgb) / 0.5)' }} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-14" role="status">
-          <p className="text-3xl mb-3" style={{ color: '#A88A4B', opacity: 0.55 }}>✦</p>
-          <p className="serif text-base font-medium" style={{ color: '#3F2E1F' }}>
-            {filter === 'todos' ? 'Aún no hay invitaciones' : 'Sin invitaciones en este filtro'}
+          <p className="text-3xl mb-3" style={{ color: 'var(--gold-t)', opacity: 0.55 }}>✦</p>
+          <p className="serif text-base font-medium" style={{ color: 'var(--ink)' }}>
+            {filter === 'todos' ? tr('Aún no hay invitaciones', 'No invitations yet') : tr('Sin invitaciones en este filtro', 'No invitations in this filter')}
           </p>
           {filter === 'todos' && (
-            <p className="text-xs mt-1.5" style={{ color: '#8B7E63' }}>
-              Usa el formulario de arriba para agregar la primera.
+            <p className="text-xs mt-1.5" style={{ color: 'var(--muted)' }}>
+              {tr('Usa el formulario de arriba para agregar la primera.', 'Use the form above to add the first one.')}
             </p>
           )}
         </div>
       ) : (
-        <div className="space-y-2.5" aria-label="Lista de invitaciones">
+        <div className="space-y-2.5" aria-label={tr('Lista de invitaciones', 'Invitation list')}>
           {filtered.map(inv => (
             <GuestCard key={inv.id} invitado={inv} nombreBoda={nombreBoda} showMenores={usaMenores} onDeleted={fetchInvitados} />
           ))}

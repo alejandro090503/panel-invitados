@@ -26,7 +26,12 @@ export async function nombreYaExiste(
   return Array.isArray(data) && data.length > 0
 }
 
-export function avisoNombreDuplicado(nombre: string): string {
+export function avisoNombreDuplicado(nombre: string, idioma: 'es' | 'en' = 'es'): string {
+  if (idioma === 'en') {
+    return `An invitation named "${nombre.trim()}" already exists. ` +
+      'Each invitation needs a different name, because the link opens by name. ' +
+      'Add something that tells them apart, for example: "Smith Family (John and Anna)".'
+  }
   return `Ya existe una invitación llamada "${nombre.trim()}". ` +
     'Cada invitación necesita un nombre distinto, porque el link se abre por nombre. ' +
     'Agrega algo que las distinga, por ejemplo: "Familia Avilés López (José Luis y Ana Lilia)".'

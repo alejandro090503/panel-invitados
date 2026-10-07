@@ -2,6 +2,7 @@
 import { Mail, Clock, XCircle, Ticket, UserCheck, Baby, CircleDashed } from 'lucide-react'
 import type { Invitado } from '@/lib/supabase'
 import { lugares, confirmadosDe, declinadosDe, sinUsarDe } from '@/lib/conteo'
+import { usePrefs } from '@/lib/prefs'
 
 interface Props {
   invitados: Invitado[]
@@ -10,6 +11,7 @@ interface Props {
 // Todas las tarjetas (menos "Invitaciones") cuentan PERSONAS:
 // confirmadas + pendientes + declinaron + lugares sin usar = pases.
 export function ResumenCards({ invitados }: Props) {
+  const { tr } = usePrefs()
   const suma = (f: (i: Invitado) => number) => invitados.reduce((s, i) => s + f(i), 0)
   const invitaciones        = invitados.length
   const totalPases          = suma(lugares)
@@ -20,18 +22,18 @@ export function ResumenCards({ invitados }: Props) {
   const totalMenores        = invitados.reduce((s, i) => s + (i.pases_menores || 0), 0)
 
   const cards = [
-    { label: 'Invitaciones',         value: invitaciones,        icon: Mail,      color: '#A88A4B', bg: 'rgba(168,138,75,0.10)' },
-    { label: 'Pases',                value: totalPases,          icon: Ticket,    color: '#876338', bg: 'rgba(135,99,56,0.10)'  },
-    { label: 'Personas confirmadas', value: personasConfirmadas, icon: UserCheck, color: '#2F5A28', bg: 'rgba(107,155,100,0.12)' },
-    { label: 'Personas pendientes',  value: pendientes,          icon: Clock,     color: '#6E4A18', bg: 'rgba(184,137,58,0.12)'  },
-    { label: 'Personas que declinaron', value: declinadas,          icon: XCircle,   color: '#7A2A1F', bg: 'rgba(184,80,66,0.10)'   },
+    { label: tr('Invitaciones', 'Invitations'),       value: invitaciones,        icon: Mail,      color: 'var(--gold-t)', bg: 'rgba(168,138,75,0.10)' },
+    { label: tr('Pases', 'Seats'), value: totalPases,          icon: Ticket,    color: 'var(--bronze-t)', bg: 'rgba(135,99,56,0.10)'  },
+    { label: tr('Personas confirmadas', 'Confirmed guests'), value: personasConfirmadas, icon: UserCheck, color: 'var(--ok-t)', bg: 'rgba(107,155,100,0.12)' },
+    { label: tr('Personas pendientes', 'Pending guests'), value: pendientes,          icon: Clock,     color: 'var(--warn-t)', bg: 'rgba(184,137,58,0.12)'  },
+    { label: tr('Personas que declinaron', 'Guests who declined'), value: declinadas,          icon: XCircle,   color: 'var(--err-t)', bg: 'rgba(184,80,66,0.10)'   },
     // Solo aparece si alguna familia confirmó menos lugares de los que tenía
     ...(sinUsar > 0
-      ? [{ label: 'Lugares sin usar', value: sinUsar, icon: CircleDashed, color: '#8B7E63', bg: 'rgba(139,126,99,0.12)' }]
+      ? [{ label: tr('Lugares sin usar', 'Unused seats'), value: sinUsar, icon: CircleDashed, color: 'var(--muted)', bg: 'rgba(139,126,99,0.12)' }]
       : []),
     // La tarjeta de Menores solo aparece en bodas que asignan pases para menores
     ...(totalMenores > 0
-      ? [{ label: 'Menores', value: totalMenores, icon: Baby, color: '#6E4A18', bg: 'rgba(201,166,100,0.14)' }]
+      ? [{ label: tr('Menores', 'Children'), value: totalMenores, icon: Baby, color: 'var(--warn-t)', bg: 'rgba(201,166,100,0.14)' }]
       : []),
   ]
 
@@ -46,7 +48,7 @@ export function ResumenCards({ invitados }: Props) {
             <Icon size={18} color={color} strokeWidth={1.8} />
           </div>
           <span className="serif text-3xl font-semibold tabular-nums leading-none" style={{ color }}>{value}</span>
-          <span className="text-[11px] uppercase tracking-wider mt-0.5" style={{ color: '#8B7E63' }}>{label}</span>
+          <span className="text-[11px] uppercase tracking-wider mt-0.5" style={{ color: 'var(--muted)' }}>{label}</span>
         </div>
       ))}
     </div>

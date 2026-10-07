@@ -21,6 +21,44 @@
   --success: #6B9B64;
   --warning: #B8893A;
   --danger:  #B85042;
+
+  /* Tokens de los componentes (cambian con el tema) */
+  --ink:      #3F2E1F;
+  --ink-2:    #5D4A33;
+  --muted:    #8B7E63;
+  --muted-2:  #A89876;
+  --muted-3:  #C2B59A;
+  --bronze-t: #876338;
+  --gold-t:   #A88A4B;
+  --line:     #D9CDB6;
+  --ok-t:     #2F5A28;
+  --ok-t2:    #1D7A44;
+  --warn-t:   #6E4A18;
+  --err-t:    #7A3B31;
+  --surface-rgb: 255 252 246;
+  --bg-grad:  linear-gradient(135deg, #FBF8F2 0%, #F4ECD8 55%, #E8D9B5 100%);
+  color-scheme: light;
+}
+
+/* ── Tema oscuro: mocha profundo con dorados cálidos ── */
+html[data-theme="dark"] {
+  --ink:      #F1E6D2;
+  --ink-2:    #DCCBAF;
+  --muted:    #B3A58A;
+  --muted-2:  #9A8D74;
+  --muted-3:  #7A6F5C;
+  --bronze-t: #D9BF86;
+  --gold-t:   #D4B26E;
+  --line:     #4E4233;
+  --ok-t:     #A3D49A;
+  --ok-t2:    #8FD0A6;
+  --warn-t:   #E6C07A;
+  --err-t:    #EFA092;
+  --danger:   #D9705F;
+  --surface-rgb: 44 35 27;
+  --bg-grad:  linear-gradient(135deg, #17120D 0%, #1F1812 55%, #2A2017 100%);
+  --mocha:    #F1E6D2;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -28,9 +66,10 @@ html { -webkit-tap-highlight-color: transparent; }
 
 body {
   font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
-  background: linear-gradient(135deg, #FBF8F2 0%, #F4ECD8 55%, #E8D9B5 100%);
+  background: var(--bg-grad);
+  background-attachment: fixed;
   min-height: 100dvh;
-  color: var(--mocha);
+  color: var(--ink);
 }
 
 /* Glassmorphism alineado a crema + dorado */
@@ -111,3 +150,45 @@ body {
   .btn-icono:hover { color: #876338; background: rgba(168,138,75,0.10); }
   .btn-icono--peligro:hover { color: #B85042; background: rgba(184,80,66,0.08); }
 }
+
+/* ── Tema oscuro: vidrio, insignias y botones de icono ── */
+html[data-theme="dark"] .glass {
+  background: rgba(36, 28, 21, 0.78);
+  border-color: rgba(212, 178, 110, 0.16);
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 240, 210, 0.05);
+}
+html[data-theme="dark"] .glass-sm {
+  background: rgba(44, 35, 27, 0.66);
+  border-color: rgba(212, 178, 110, 0.14);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 240, 210, 0.04);
+}
+html[data-theme="dark"] .badge-pendiente  { background: rgba(230, 192, 122, .12); color: #E6C07A; border-color: rgba(230, 192, 122, .30); }
+html[data-theme="dark"] .badge-confirmado { background: rgba(163, 212, 154, .12); color: #A3D49A; border-color: rgba(163, 212, 154, .30); }
+html[data-theme="dark"] .badge-declino    { background: rgba(239, 160, 146, .12); color: #EFA092; border-color: rgba(239, 160, 146, .28); }
+.btn-icono { color: var(--muted); }
+@media (hover: hover) {
+  html[data-theme="dark"] .btn-icono:hover { color: #D9BF86; background: rgba(212,178,110,0.12); }
+  html[data-theme="dark"] .btn-icono--peligro:hover { color: #EFA092; background: rgba(239,160,146,0.10); }
+}
+
+/* Cambio de tema suave: solo mientras dura el cambio, para no frenar el resto */
+html.tema-anim, html.tema-anim *, html.tema-anim *::before, html.tema-anim *::after {
+  transition: background-color .45s ease, background .45s ease, color .45s ease,
+              border-color .45s ease, box-shadow .45s ease, fill .45s ease, stroke .45s ease !important;
+}
+
+/* Botones flotantes de tema e idioma */
+.prefs-flotante {
+  position: fixed; right: 14px; bottom: 14px; z-index: 60;
+  display: flex; gap: 6px; padding: 5px; border-radius: 999px;
+}
+.prefs-btn {
+  height: 38px; min-width: 38px; padding: 0 10px; border-radius: 999px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  color: var(--gold-t); background: transparent; border: 0; cursor: pointer;
+  font-size: 12px; font-weight: 600; letter-spacing: .08em;
+}
+.prefs-btn:active { transform: scale(.94); }
+@media (hover: hover) { .prefs-btn:hover { background: rgba(168,138,75,0.12); } }
+.prefs-btn .prefs-ico { transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .3s; }
+html[data-theme="dark"] .prefs-btn .prefs-ico { transform: rotate(-30deg); }

@@ -5,6 +5,7 @@ import type { Invitado, EstadoInvitado } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 import { waLink, mensajeInvitacion, normalizarTelefono } from '@/lib/whatsapp'
 import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
+import { usePrefs } from '@/lib/prefs'
 
 interface Props {
   invitado: Invitado
@@ -19,10 +20,10 @@ const BADGE: Record<EstadoInvitado, string> = {
   declino:    'badge-declino',
 }
 
-const LABEL: Record<EstadoInvitado, string> = {
-  pendiente:  'Pendiente',
-  confirmado: 'Confirmado',
-  declino:    'Declinó',
+const LABEL: Record<EstadoInvitado, [string, string]> = {
+  pendiente:  ['Pendiente', 'Pending'],
+  confirmado: ['Confirmado', 'Confirmed'],
+  declino:    ['Declinó', 'Declined'],
 }
 
 // Clave para comparar el nombre asignado contra el que escribió el invitado.
@@ -101,6 +102,9 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   /* Aviso de "¿seguro?" dentro de la tarjeta: `confirm()` no es fiable en
      iPhone (Safari permite bloquear los dialogos y entonces devuelve false). */
   const [aviso, setAviso] = useState<{ texto: string; etiqueta: string; accion: () => void } | null>(null)
+  const { tr, idioma } = usePrefs()
+  const etiqueta = (e: EstadoInvitado) => tr(LABEL[e][0], LABEL[e][1])
+  const personasTxt = (n: number) => n === 1 ? tr('persona', 'person') : tr('personas', 'people')
 
   const menores = invitado.pases_menores || 0
   const asignados = invitado.nombres_asignados ?? []
@@ -175,21 +179,23 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   async function deleteGuest() {
     // Borrar es definitivo: el link ya enviado deja de encontrar el registro y,
     // si el invitado ya había respondido, esa respuesta se pierde.
-    let texto = `¿Eliminar la invitación de ${invitado.nombre}?\n\n`
+    let texto = tr(`¿Eliminar la invitación de ${invitado.nombre}?`, `Delete the invitation for ${invitado.nombre}?`) + '\n\n'
     if (invitado.estado === 'confirmado') {
       const quienes = (invitado.nombres_confirmados ?? []).filter(Boolean)
       const nConf = invitado.pases_confirmados || 0
-      texto += `OJO: esta invitación YA ESTÁ CONFIRMADA (${nConf} ${nConf === 1 ? 'persona' : 'personas'}`
+      texto += tr('OJO: esta invitación YA ESTÁ CONFIRMADA', 'WARNING: this invitation IS ALREADY CONFIRMED') + ` (${nConf} ${personasTxt(nConf)}`
       texto += quienes.length ? `: ${quienes.join(', ')}` : ''
-      texto += ').\nSi la borras, pierdes esa respuesta y no la vas a poder recuperar.\n\n'
+      texto += ').\n' + tr('Si la borras, pierdes esa respuesta y no la vas a poder recuperar.', 'If you delete it, that response is lost and cannot be recovered.') + '\n\n'
     } else if (invitado.estado === 'declino') {
-      texto += 'OJO: esta invitación ya tiene respuesta registrada (no podrán asistir).\n'
-      texto += 'Si la borras, pierdes ese registro.\n\n'
+      texto += tr('OJO: esta invitación ya tiene respuesta registrada (no podrán asistir).', 'WARNING: this invitation already has a response (they cannot attend).') + '\n'
+      texto += tr('Si la borras, pierdes ese registro.', 'If you delete it, that record is lost.') + '\n\n'
     }
-    texto += 'Si ya enviaste el link, dejará de funcionar: al abrirlo no encontrará la invitación '
-    texto += 'y no van a poder confirmar.'
+    texto += tr(
+      'Si ya enviaste el link, dejará de funcionar: al abrirlo no encontrará la invitación y no van a poder confirmar.',
+      'If you already sent the link, it will stop working: it will not find the invitation and they will not be able to respond.'
+    )
 
-    setAviso({ texto, etiqueta: 'Sí, eliminar', accion: borrarAhora })
+    setAviso({ texto, etiqueta: tr('Sí, eliminar', 'Yes, delete'), accion: borrarAhora })
   }
 
   async function borrarAhora() {
@@ -221,12 +227,12 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     const nuevoNombre = editNombre.trim()
     const nuevoTel = editTelefono.trim()
     if (!nuevoNombre) {
-      setError('El nombre no puede quedar vacío.')
+      setError(tr('El nombre no puede quedar vacío.', 'The name cannot be empty.'))
       return
     }
     if (nuevoNombre.toLowerCase() !== invitado.nombre.trim().toLowerCase()
         && await nombreYaExiste(invitado.url_boda, nuevoNombre, invitado.id)) {
-      setError(avisoNombreDuplicado(nuevoNombre))
+      setError(avisoNombreDuplicado(nuevoNombre, idioma))
       return
     }
 
@@ -239,7 +245,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     if (tieneAsignados) {
       nuevosAsignados = editAsignados.split('\n').map(s => s.trim()).filter(s => s.length > 0)
       if (nuevosAsignados.length === 0) {
-        setError('Deja al menos un nombre (uno por línea).')
+        setError(tr('Deja al menos un nombre (uno por línea).', 'Keep at least one name (one per line).'))
         return
       }
       // En modo nombres, los pases son exactamente cuántos nombres hay.
@@ -249,7 +255,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     } else {
       const p = Math.floor(Number(editPases))
       if (!Number.isFinite(p) || p < 1 || p > 20) {
-        setError('Los pases deben ser un número entre 1 y 20.')
+        setError(tr('Los pases deben ser un número entre 1 y 20.', 'Seats must be a number between 1 and 20.'))
         return
       }
       nuevosPases = p
@@ -257,7 +263,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
       if (showMenores) {
         const m = Math.floor(Number(editMenores))
         if (!Number.isFinite(m) || m < 0 || m > 20) {
-          setError('Los menores deben ser un número entre 0 y 20.')
+          setError(tr('Los menores deben ser un número entre 0 y 20.', 'Children must be a number between 0 and 20.'))
           return
         }
         nuevosMenores = m
@@ -292,12 +298,16 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     if (yaRespondio && (cambioCupos || cambioNombres)) {
       const total = nuevosPases + nuevosMenores
       avisos.push(
-        `Esta invitación ya tiene respuesta (${LABEL[invitado.estado].toLowerCase()}) con ` +
-        `${invitado.pases_confirmados || 0} confirmado(s).\n` +
+        tr(
+          `Esta invitación ya tiene respuesta (${etiqueta(invitado.estado).toLowerCase()}) con ${invitado.pases_confirmados || 0} confirmado(s).`,
+          `This invitation already has a response (${etiqueta(invitado.estado).toLowerCase()}) with ${invitado.pases_confirmados || 0} confirmed.`
+        ) + '\n' +
         (cambioNombres
-          ? 'Vas a cambiar los nombres asignados. Los que confirmaron y ya no estén en la lista dejarán de aparecer como asistentes.'
-          : `Vas a cambiar los lugares a ${total}. Si quedan por debajo de lo ya confirmado, tendrán que responder de nuevo.`) +
-        '\nConviene avisarles para que vuelvan a abrir su link.'
+          ? tr('Vas a cambiar los nombres asignados. Los que confirmaron y ya no estén en la lista dejarán de aparecer como asistentes.',
+               'You are changing the assigned names. Anyone who confirmed and is no longer on the list will stop showing as attending.')
+          : tr(`Vas a cambiar los lugares a ${total}. Si quedan por debajo de lo ya confirmado, tendrán que responder de nuevo.`,
+               `You are changing the seats to ${total}. If that is below what was already confirmed, they will need to respond again.`)) +
+        '\n' + tr('Conviene avisarles para que vuelvan a abrir su link.', 'It is a good idea to let them know so they open their link again.')
       )
     }
     // En las bodas con link por nombre (?para= o el token), el link ya enviado
@@ -305,15 +315,16 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     // pasa: el link apunta a la fila y sobrevive al renombrado.
     if (nuevoNombre !== invitado.nombre && !usarId) {
       avisos.push(
-        `Vas a cambiar el nombre de "${invitado.nombre}" a "${nuevoNombre}".\n` +
-        'El link que ya hayas enviado con el nombre anterior dejará de funcionar. ' +
-        'Tendrás que volver a compartir el link nuevo.'
+        tr(`Vas a cambiar el nombre de "${invitado.nombre}" a "${nuevoNombre}".`,
+           `You are renaming "${invitado.nombre}" to "${nuevoNombre}".`) + '\n' +
+        tr('El link que ya hayas enviado con el nombre anterior dejará de funcionar. Tendrás que volver a compartir el link nuevo.',
+           'Any link you already sent with the old name will stop working. You will need to share the new link.')
       )
     }
     if (avisos.length > 0) {
       setAviso({
         texto: avisos.join('\n\n'),
-        etiqueta: 'Guardar de todos modos',
+        etiqueta: tr('Guardar de todos modos', 'Save anyway'),
         accion: () => { void aplicarCambios(cambios, nuevoNombre) },
       })
       return
@@ -339,7 +350,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     }
     setSaving(false)
     if (err) {
-      setError('No se pudo guardar. Intenta de nuevo.')
+      setError(tr('No se pudo guardar. Intenta de nuevo.', 'Could not save. Please try again.'))
       return
     }
     setEditing(false)
@@ -349,9 +360,9 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   const confirmados = invitado.pases_confirmados || 0
 
   const inputStyle: React.CSSProperties = {
-    background: 'rgba(255,252,246,0.9)',
+    background: 'rgb(var(--surface-rgb) / 0.9)',
     border: '1px solid rgba(168,138,75,0.35)',
-    color: '#3F2E1F',
+    color: 'var(--ink)',
   }
 
   return (
@@ -375,8 +386,8 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
           <div className="flex flex-col gap-2">
             <div className="flex flex-col sm:flex-row gap-2">
               <label className="flex-1 min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: '#8B7E63' }}>
-                  Nombre o familia
+                <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
+                  {tr('Nombre o familia', 'Name or family')}
                 </span>
                 <input
                   type="text"
@@ -388,15 +399,15 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                 />
               </label>
               <label className="flex-1 min-w-0">
-                <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: '#8B7E63' }}>
-                  WhatsApp (opcional)
+                <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
+                  {tr('WhatsApp (opcional)', 'WhatsApp (optional)')}
                 </span>
                 <input
                   type="tel"
                   inputMode="tel"
                   value={editTelefono}
                   onChange={(e) => setEditTelefono(e.target.value)}
-                  placeholder="Ej. 5215512345678"
+                  placeholder={tr('Ej. 5215512345678', 'e.g. 15125551234')}
                   className="w-full px-3 py-1.5 rounded-lg text-sm outline-none"
                   style={inputStyle}
                 />
@@ -405,8 +416,8 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             {/* Modo nombres específicos: lista editable, uno por línea */}
             {tieneAsignados ? (
               <label className="block">
-                <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: '#8B7E63' }}>
-                  Nombres asignados (uno por línea)
+                <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
+                  {tr('Nombres asignados (uno por línea)', 'Assigned names (one per line)')}
                 </span>
                 <textarea
                   value={editAsignados}
@@ -415,16 +426,16 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                   className="w-full px-3 py-1.5 rounded-lg text-sm outline-none resize-y"
                   style={inputStyle}
                 />
-                <span className="block text-[10px] mt-1" style={{ color: '#A89876' }}>
-                  Los pases se ajustan solos al número de nombres.
+                <span className="block text-[10px] mt-1" style={{ color: 'var(--muted-2)' }}>
+                  {tr('Los pases se ajustan solos al número de nombres.', 'Seats adjust automatically to the number of names.')}
                 </span>
               </label>
             ) : (
               /* Modo X pases: número de pases (y menores si la boda los usa) */
               <div className="flex gap-2">
                 <label className="w-24">
-                  <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: '#8B7E63' }}>
-                    Pases
+                  <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
+                    {tr('Pases', 'Seats')}
                   </span>
                   <input
                     type="number"
@@ -438,8 +449,8 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                 </label>
                 {showMenores && (
                   <label className="w-24">
-                    <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: '#8B7E63' }}>
-                      Menores
+                    <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
+                      {tr('Menores', 'Children')}
                     </span>
                     <input
                       type="number"
@@ -456,7 +467,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             )}
 
             {error && (
-              <p className="text-[11px]" style={{ color: '#B85042' }}>{error}</p>
+              <p className="text-[11px]" style={{ color: 'var(--danger)' }}>{error}</p>
             )}
             <div className="flex items-center gap-2">
               <button
@@ -466,40 +477,40 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                 className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
                 style={{ background: 'linear-gradient(135deg, #C9A961, #A88A4B)', color: '#FFFCF6' }}
               >
-                {saving ? 'Guardando…' : 'Guardar'}
+                {saving ? tr('Guardando…', 'Saving…') : tr('Guardar', 'Save')}
               </button>
               <button
                 type="button"
                 onClick={() => { setEditing(false); setError(''); setAviso(null) }}
                 disabled={saving}
                 className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95 disabled:opacity-50"
-                style={{ background: 'rgba(255,252,246,0.6)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }}
+                style={{ background: 'rgb(var(--surface-rgb) / 0.6)', color: 'var(--bronze-t)', border: '1px solid rgba(168,138,75,0.25)' }}
               >
-                Cancelar
+                {tr('Cancelar', 'Cancel')}
               </button>
             </div>
           </div>
         ) : (
           <>
-            <p className="serif font-semibold text-base leading-tight truncate" style={{ color: '#3F2E1F' }}>
+            <p className="serif font-semibold text-base leading-tight truncate" style={{ color: 'var(--ink)' }}>
               {invitado.nombre}
             </p>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <span className="flex items-center gap-1 text-xs" style={{ color: '#8B7E63' }}>
+              <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted)' }}>
                 <Users size={11} strokeWidth={2} />
-                {invitado.pases + menores} {invitado.pases + menores === 1 ? 'pase' : 'pases'}
+                {invitado.pases + menores} {invitado.pases + menores === 1 ? tr('pase', 'seat') : tr('pases', 'seats')}
               </span>
               {invitado.estado === 'confirmado' && (
-                <span className="flex items-center gap-1 text-xs font-medium" style={{ color: '#2F5A28' }}>
+                <span className="flex items-center gap-1 text-xs font-medium" style={{ color: 'var(--ok-t)' }}>
                   <UserCheck size={11} strokeWidth={2} />
-                  {confirmados} de {invitado.pases + menores} asisten
+                  {confirmados} {tr('de', 'of')} {invitado.pases + menores} {tr('asisten', 'attending')}
                 </span>
               )}
               <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${BADGE[invitado.estado]}`}>
-                {LABEL[invitado.estado]}
+                {etiqueta(invitado.estado)}
               </span>
               {tieneTel && (
-                <span className="flex items-center gap-1 text-xs" style={{ color: '#8B7E63' }}>
+                <span className="flex items-center gap-1 text-xs" style={{ color: 'var(--muted)' }}>
                   <MessageCircle size={11} strokeWidth={2} />
                   {invitado.telefono}
                 </span>
@@ -524,20 +535,20 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                     const { ok, comoEscribio } = pares[i]
                     const decidido = invitado.estado !== 'pendiente'
                     const style: React.CSSProperties = !decidido
-                      ? { background: 'rgba(168,138,75,0.08)', color: '#876338', border: '1px solid rgba(168,138,75,0.22)' }
+                      ? { background: 'rgba(168,138,75,0.08)', color: 'var(--bronze-t)', border: '1px solid rgba(168,138,75,0.22)' }
                       : ok
-                        ? { background: 'rgba(47,90,40,0.10)', color: '#2F5A28', border: '1px solid rgba(47,90,40,0.30)' }
-                        : { background: 'rgba(184,80,66,0.08)', color: '#B85042', border: '1px solid rgba(184,80,66,0.25)' }
+                        ? { background: 'rgba(47,90,40,0.10)', color: 'var(--ok-t)', border: '1px solid rgba(47,90,40,0.30)' }
+                        : { background: 'rgba(184,80,66,0.08)', color: 'var(--danger)', border: '1px solid rgba(184,80,66,0.25)' }
                     return (
                       <span
                         key={i}
                         className="text-[11px] px-2 py-0.5 rounded-full font-medium"
                         style={style}
                         // Si confirmó con el nombre escrito distinto, se ve al pasar el cursor.
-                        title={comoEscribio ? `Confirmó escribiendo "${comoEscribio}"` : undefined}
+                        title={comoEscribio ? tr(`Confirmó escribiendo "${comoEscribio}"`, `Confirmed writing "${comoEscribio}"`) : undefined}
                       >
                         {n}{decidido ? (ok ? ' ✓' : ' ✗') : ''}
-                        {comoEscribio && <span className="opacity-70"> · escribió “{comoEscribio}”</span>}
+                        {comoEscribio && <span className="opacity-70"> · {tr('escribió', 'wrote')} “{comoEscribio}”</span>}
                       </span>
                     )
                   })}
@@ -551,7 +562,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
       {/* Link preview */}
       {!editing && !aviso && (
         <div className="hidden lg:block flex-1 min-w-0">
-          <p className="text-xs truncate font-mono" style={{ color: '#A89876' }} title={link}>
+          <p className="text-xs truncate font-mono" style={{ color: 'var(--muted-2)' }} title={link}>
             {link.length > 55 ? link.slice(0, 55) + '…' : link}
           </p>
         </div>
@@ -564,10 +575,10 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             href={waHref}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={tieneTel ? `Enviar invitación por WhatsApp a ${invitado.nombre}` : 'Compartir invitación por WhatsApp'}
-            title={tieneTel ? `Enviar por WhatsApp a ${invitado.telefono}` : 'Compartir por WhatsApp (elige el contacto)'}
+            aria-label={tieneTel ? tr(`Enviar invitación por WhatsApp a ${invitado.nombre}`, `Send invitation on WhatsApp to ${invitado.nombre}`) : tr('Compartir invitación por WhatsApp', 'Share invitation on WhatsApp')}
+            title={tieneTel ? tr(`Enviar por WhatsApp a ${invitado.telefono}`, `Send on WhatsApp to ${invitado.telefono}`) : tr('Compartir por WhatsApp (elige el contacto)', 'Share on WhatsApp (pick the contact)')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
-            style={{ background: 'rgba(37,211,102,0.12)', color: '#1D7A44', border: '1px solid rgba(37,211,102,0.32)' }}
+            style={{ background: 'rgba(37,211,102,0.12)', color: 'var(--ok-t2)', border: '1px solid rgba(37,211,102,0.32)' }}
           >
             <MessageCircle size={13} />
             <span>WhatsApp</span>
@@ -576,25 +587,25 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
           <button
             type="button"
             onClick={copyLink}
-            aria-label="Copiar link de invitación"
-            title="Copiar link"
+            aria-label={tr('Copiar link de invitación', 'Copy invitation link')}
+            title={tr('Copiar link', 'Copy link')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
             style={
               copied
-                ? { background: 'rgba(107,155,100,0.14)', color: '#2F5A28', border: '1px solid rgba(107,155,100,0.30)' }
-                : { background: 'rgba(168,138,75,0.10)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }
+                ? { background: 'rgba(107,155,100,0.14)', color: 'var(--ok-t)', border: '1px solid rgba(107,155,100,0.30)' }
+                : { background: 'rgba(168,138,75,0.10)', color: 'var(--bronze-t)', border: '1px solid rgba(168,138,75,0.25)' }
             }
           >
             {copied
-              ? <><Check size={13} /><span>Copiado</span></>
-              : <><Copy size={13} /><span>Copiar</span></>
+              ? <><Check size={13} /><span>{tr('Copiado', 'Copied')}</span></>
+              : <><Copy size={13} /><span>{tr('Copiar', 'Copy')}</span></>
             }
           </button>
 
           <button
             onClick={startEdit}
-            aria-label={`Editar nombre y WhatsApp de ${invitado.nombre}`}
-            title="Editar nombre y WhatsApp"
+            aria-label={tr(`Editar nombre y WhatsApp de ${invitado.nombre}`, `Edit name and WhatsApp for ${invitado.nombre}`)}
+            title={tr('Editar nombre y WhatsApp', 'Edit name and WhatsApp')}
             type="button"
             className="btn-icono p-2 rounded-xl transition-all duration-200 active:scale-95"
           >
@@ -604,8 +615,8 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
           <button
             onClick={deleteGuest}
             disabled={deleting}
-            aria-label={`Eliminar invitación de ${invitado.nombre}`}
-            title="Eliminar invitación"
+            aria-label={tr(`Eliminar invitación de ${invitado.nombre}`, `Delete invitation for ${invitado.nombre}`)}
+            title={tr('Eliminar invitación', 'Delete invitation')}
             type="button"
             className="btn-icono btn-icono--peligro p-2 rounded-xl transition-all duration-200 active:scale-95 disabled:opacity-50"
           >
@@ -619,9 +630,9 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
           className="w-full sm:flex-1 min-w-0 rounded-xl px-3 py-3 flex flex-col gap-2"
           style={{ background: 'rgba(184,80,66,0.06)', border: '1px solid rgba(184,80,66,0.28)' }}
           role="alertdialog"
-          aria-label="Confirmar acción"
+          aria-label={tr('Confirmar acción', 'Confirm action')}
         >
-          <p className="text-xs leading-relaxed" style={{ color: '#7A3B31', whiteSpace: 'pre-line' }}>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--err-t)', whiteSpace: 'pre-line' }}>
             {aviso.texto}
           </p>
           <div className="flex items-center gap-2">
@@ -629,7 +640,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
               type="button"
               onClick={() => { const seguir = aviso.accion; setAviso(null); seguir() }}
               className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
-              style={{ background: '#B85042', color: '#FFFCF6' }}
+              style={{ background: 'var(--danger)', color: '#FFFCF6' }}
             >
               {aviso.etiqueta}
             </button>
@@ -637,9 +648,9 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
               type="button"
               onClick={() => setAviso(null)}
               className="px-3 py-1.5 rounded-xl text-xs font-medium transition-all active:scale-95"
-              style={{ background: 'rgba(255,252,246,0.7)', color: '#876338', border: '1px solid rgba(168,138,75,0.25)' }}
+              style={{ background: 'rgb(var(--surface-rgb) / 0.7)', color: 'var(--bronze-t)', border: '1px solid rgba(168,138,75,0.25)' }}
             >
-              Cancelar
+              {tr('Cancelar', 'Cancel')}
             </button>
           </div>
         </div>

@@ -25,8 +25,8 @@ export function AdminPanel() {
       {/* Resumen rápido */}
       <div className="glass-sm rounded-2xl px-6 py-5 flex items-center gap-8">
         <div className="text-center">
-          <span className="serif text-3xl font-semibold tabular-nums" style={{ color: '#A88A4B' }}>{bodas.length}</span>
-          <p className="text-[11px] mt-0.5 uppercase tracking-wider" style={{ color: '#8B7E63' }}>Bodas activas</p>
+          <span className="serif text-3xl font-semibold tabular-nums" style={{ color: 'var(--gold-t)' }}>{bodas.length}</span>
+          <p className="text-[11px] mt-0.5 uppercase tracking-wider" style={{ color: 'var(--muted)' }}>Bodas activas</p>
         </div>
       </div>
 
@@ -36,16 +36,16 @@ export function AdminPanel() {
       {loading ? (
         <div className="space-y-3" aria-busy="true" aria-label="Cargando bodas">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-28 rounded-2xl animate-pulse" style={{ background: 'rgba(255,252,246,0.5)' }} />
+            <div key={i} className="h-28 rounded-2xl animate-pulse" style={{ background: 'rgb(var(--surface-rgb) / 0.5)' }} />
           ))}
         </div>
       ) : bodas.length === 0 ? (
         <div className="text-center py-14" role="status">
-          <p className="text-3xl mb-3" style={{ color: '#A88A4B', opacity: 0.6 }}>✦</p>
-          <p className="serif text-base font-medium" style={{ color: '#3F2E1F' }}>
+          <p className="text-3xl mb-3" style={{ color: 'var(--gold-t)', opacity: 0.6 }}>✦</p>
+          <p className="serif text-base font-medium" style={{ color: 'var(--ink)' }}>
             Aún no hay bodas registradas
           </p>
-          <p className="text-xs mt-1.5" style={{ color: '#8B7E63' }}>
+          <p className="text-xs mt-1.5" style={{ color: 'var(--muted)' }}>
             Usa el formulario de arriba para crear el primer panel.
           </p>
         </div>
