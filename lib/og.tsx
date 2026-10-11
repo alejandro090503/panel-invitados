@@ -100,7 +100,8 @@ export async function imagenPanel(tipo: string, nombre: string) {
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 18, margin: '26px 0 14px' }}>
               {linea(120)}
-              <div style={{ fontSize: 22, color: GOLD, display: 'flex' }}>✦</div>
+              {/* Rombo dibujado: las fuentes no traen el glifo ✦ y salía un cuadro vacío */}
+              <div style={{ width: 11, height: 11, background: GOLD, transform: 'rotate(45deg)', display: 'flex' }} />
               {linea(120)}
             </div>
 
