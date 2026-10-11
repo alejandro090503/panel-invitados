@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/cron/album-limpieza", "schedule": "0 10 * * *" }
+  ]
+}

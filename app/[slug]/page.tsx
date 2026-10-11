@@ -6,12 +6,18 @@ import type { Boda } from '@/lib/supabase'
 import { PasswordGate } from '@/components/PasswordGate'
 import { GuestList } from '@/components/GuestList'
 import { usePrefs } from '@/lib/prefs'
+import Link from 'next/link'
+import { Images } from 'lucide-react'
+import { infoAlbum, type InfoAlbum } from '@/lib/album'
 
 export default function PanelBoda() {
   const { slug } = useParams<{ slug: string }>()
   const [boda, setBoda] = useState<Boda | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [auth, setAuth] = useState<boolean | null>(null)
+  // Solo los eventos con álbum activado (fila en album_eventos) muestran el botón
+  const [album, setAlbum] = useState<InfoAlbum | null>(null)
+  useEffect(() => { if (auth) infoAlbum(slug).then(setAlbum) }, [auth, slug])
   const { tr } = usePrefs()
 
   useEffect(() => {
@@ -90,9 +96,22 @@ export default function PanelBoda() {
               {tr('Panel de invitados · Tiempo real', 'Guest panel · Real time')}
             </p>
           </div>
+          <div className="flex items-center gap-2 flex-wrap">
+          {album && (
+            <Link
+              href={`/${slug}/album`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors"
+              style={{ background: 'rgba(168,138,75,0.12)', border: '1px solid rgba(168,138,75,0.35)', color: 'var(--gold-t)' }}
+            >
+              <Images size={14} />
+              {tr('Álbum de fotos', 'Photo album')}
+              {album.fotos > 0 && <span className="tabular-nums opacity-80">· {album.fotos}</span>}
+            </Link>
+          )}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: 'rgba(107,155,100,0.10)', border: '1px solid rgba(107,155,100,0.25)' }}>
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#6B9B64' }} aria-hidden="true" />
             <span className="text-xs font-medium" style={{ color: 'var(--ok-t)' }}>{tr('En vivo', 'Live')}</span>
+          </div>
           </div>
         </div>
       </div>
