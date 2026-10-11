@@ -20,6 +20,7 @@ const cormorant = Cormorant_Garamond({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://panel-invitados.vercel.app'),
   title: 'Panel de Invitados — Elysium',
   description: 'Gestión de invitados para tu boda',
 }
