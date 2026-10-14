@@ -22,7 +22,7 @@ export function mensajeInvitacion(nombre: string, evento: string, link: string):
   const propio = MENSAJE_POR_EVENTO.find(m => link.includes(m.url))
   if (propio) {
     const texto = typeof propio.texto === 'function' ? propio.texto(nombre) : propio.texto
-    return `${texto}\n\n${link}`
+    return `${texto}${propio.salto ?? '\n\n'}${link}`
   }
   return `Hola ${nombre}, nos encantaría contar contigo. Aquí está tu invitación personalizada a ${evento}: ${link}`
 }
@@ -31,7 +31,7 @@ export function mensajeInvitacion(nombre: string, evento: string, link: string):
 // evento: el resto de los paneles sigue con el mensaje de siempre. El texto va
 // tal cual lo mandó el cliente; el link se agrega al final en su propio renglón.
 // Si el mensaje nombra al invitado, se escribe como función de su nombre.
-const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string) => string) }> = [
+const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string) => string); salto?: string }> = [
   {
     url: 'boda-deny-y-arturo',
     texto: 'Les compartimos con mucha alegria nuestra invitación de boda, esperamos contar con ustedes',
@@ -47,5 +47,20 @@ const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string)
       'Cualquier duda o comentario, con gusto podremos ayudarte.\n\n' +
       'Atentamente,\n' +
       'Equipo MARO Planner 🤍',
+  },
+  {
+    // Los novios lo mandaron con emojis a propósito; van tal cual.
+    url: 'boda-omar-y-cari',
+    texto:
+      'Comienza una de las aventuras más bonitas de nuestras vidas y queremos celebrar este momento rodeados de personas especiales para nosotros. 🤍💍\n\n' +
+      'Será una gran alegría contar con ustedes y compartir juntos un día que recordaremos siempre.\n\n' +
+      'Con mucho cariño,\n' +
+      'Omar & Caritina',
+  },
+  {
+    // El link va en el renglón siguiente, sin línea en blanco.
+    url: 'boda-hugo-villarreal-y-rosario-de-la-cruz',
+    texto: (nombre: string) => `Hola, ${nombre}, nos encantaría contar contigo.`,
+    salto: '\n',
   },
 ]
