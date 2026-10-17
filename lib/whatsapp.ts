@@ -63,4 +63,15 @@ const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string)
     texto: (nombre: string) => `Hola, ${nombre}, nos encantaría contar contigo.`,
     salto: '\n',
   },
+  {
+    // Los novios lo mandaron con emojis a propósito; van tal cual.
+    url: 'boda-paola-y-damian',
+    texto:
+      'Un matrimonio bendecido por Dios, también necesita corazones que lo acompañen.\n' +
+      'Con el corazón lleno de amor y gratitud a Dios por permitirnos coincidir y elegirnos para toda la vida, queremos compartir contigo uno de los días más hermosos de nuestra historia.\n\n' +
+      'Nos encantaría que nos acompañaras a celebrar el amor que nos une y la bendición de comenzar juntos esta nueva etapa, rodeados de las personas que forman parte de nuestra vida y de nuestra felicidad.\n' +
+      'Tu presencia hará aún más especial este día ✨\n\n' +
+      'Con todo nuestro cariño, te esperamos para celebrar juntos el comienzo de nuestro para siempre. ♡\n\n' +
+      'Paola & Damián 🤍',
+  },
 ]
