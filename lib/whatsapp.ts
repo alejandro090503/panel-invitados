@@ -74,4 +74,9 @@ const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string)
       'Con todo nuestro cariño, te esperamos para celebrar juntos el comienzo de nuestro para siempre. ♡\n\n' +
       'Paola & Damián 🤍',
   },
+  {
+    url: 'boda-nicte-ha-y-efren',
+    texto:
+      '¡Hola! 🥰 ¡Nos casamos y queremos celebrar contigo! 💍 Te compartimos nuestra invitación en este enlace. Por favor, entra para ver los detalles y no olvides confirmar tu asistencia. ¡Te esperamos con mucha emoción! ❤️✨',
+  },
 ]
