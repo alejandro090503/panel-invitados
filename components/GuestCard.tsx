@@ -114,7 +114,6 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   // en el primer espacio o & al pegarla, y su link-shim (l.php) elimina el
   // fragment (#). El token no tiene espacios, & ni %, así que atraviesa intacto.
   const usarToken = invitado.url_boda.includes('elsa-y-adrian')
-    || invitado.url_boda.includes('sweet-16-mia-angelina-marulanda')
     || invitado.url_boda.includes('anabel-y-salvador')
     || invitado.url_boda.includes('daniela-y-rafael')
     || invitado.url_boda.includes('alexis-y-edgar')
