@@ -1,9 +1,9 @@
 'use client'
 import { useState } from 'react'
-import { Copy, Check, Trash2, Users, UserCheck, MessageCircle, Pencil } from 'lucide-react'
+import { Copy, Check, Trash2, Users, UserCheck, MessageCircle, Pencil, BellRing } from 'lucide-react'
 import type { Invitado, EstadoInvitado } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
-import { waLink, mensajeInvitacion, normalizarTelefono } from '@/lib/whatsapp'
+import { waLink, mensajeInvitacion, mensajeRecordatorio, normalizarTelefono } from '@/lib/whatsapp'
 import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
 import { usePrefs } from '@/lib/prefs'
 
@@ -194,6 +194,9 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
 
   const tieneTel = normalizarTelefono(invitado.telefono).length > 0
   const waHref = waLink(invitado.telefono, mensajeInvitacion(invitado.nombre, nombreBoda, link))
+  // Solo eventos con plantilla de recordatorio y solo invitaciones sin respuesta
+  const textoRecordatorio = invitado.estado === 'pendiente' ? mensajeRecordatorio(invitado.nombre, link) : null
+  const recordarHref = textoRecordatorio ? waLink(invitado.telefono, textoRecordatorio) : null
 
   async function copyLink() {
     await navigator.clipboard.writeText(link)
@@ -608,6 +611,21 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
             <MessageCircle size={13} />
             <span>WhatsApp</span>
           </a>
+
+          {recordarHref && (
+            <a
+              href={recordarHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={tr(`Recordar a ${invitado.nombre} que confirme por WhatsApp`, `Remind ${invitado.nombre} on WhatsApp to RSVP`)}
+              title={tr('Enviar recordatorio por WhatsApp', 'Send a WhatsApp reminder')}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
+              style={{ background: 'rgba(214,158,46,0.12)', color: 'var(--bronze-t)', border: '1px solid rgba(214,158,46,0.34)' }}
+            >
+              <BellRing size={13} />
+              <span>{tr('Recordar', 'Remind')}</span>
+            </a>
+          )}
 
           <button
             type="button"

@@ -80,3 +80,20 @@ const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string)
       '¡Hola! 🥰 ¡Nos casamos y queremos celebrar contigo! 💍 Te compartimos nuestra invitación en este enlace. Por favor, entra para ver los detalles y no olvides confirmar tu asistencia. ¡Te esperamos con mucha emoción! ❤️✨',
   },
 ]
+
+// Botón "Recordar" del panel: solo aparece en los eventos de esta lista y solo
+// en invitaciones que siguen pendientes. Abre el WhatsApp del invitado con el
+// texto listo; el link de su invitación va al final en su propio renglón.
+const RECORDATORIO_POR_EVENTO: Array<{ url: string; texto: (nombre: string) => string }> = [
+  {
+    url: 'confirmacion-vale-y-andres',
+    texto: (nombre: string) =>
+      `Hola, ${nombre}. Te recordamos que aún no recibimos tu confirmación para la boda de Valeria y Andrés. ` +
+      'Nos ayudaría mucho que nos confirmes antes del 6 de febrero de 2027 en tu enlace personalizado:',
+  },
+]
+
+export function mensajeRecordatorio(nombre: string, link: string): string | null {
+  const propio = RECORDATORIO_POR_EVENTO.find(m => link.includes(m.url))
+  return propio ? `${propio.texto(nombre)}\n\n${link}` : null
+}
