@@ -598,7 +598,7 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
 
       {/* Acciones */}
       {!editing && !aviso && (
-        <div className="flex items-center gap-2 shrink-0">
+        <div className={`flex items-center gap-2 shrink-0${recordarHref ? ' flex-wrap' : ''}`}>
           <a
             href={waHref}
             target="_blank"
