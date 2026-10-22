@@ -79,6 +79,14 @@ const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string)
     texto:
       '¡Hola! 🥰 ¡Nos casamos y queremos celebrar contigo! 💍 Te compartimos nuestra invitación en este enlace. Por favor, entra para ver los detalles y no olvides confirmar tu asistencia. ¡Te esperamos con mucha emoción! ❤️✨',
   },
+  {
+    // Los novios lo mandaron con emojis a propósito; van tal cual.
+    url: 'boda-perci-y-virsabit',
+    texto:
+      '¡Hola! ✨\n\n' +
+      'Después de tanto esperar este momento, por fin podemos compartirte nuestra invitación digital donde podrás encontrar todos los detalles de nuestra boda Cosis L❤️VE.\n\n' +
+      'Nos hará muy felices que nos acompañes en este día tan especial.',
+  },
 ]
 
 // Botón "Recordar" del panel: solo aparece en los eventos de esta lista y solo
