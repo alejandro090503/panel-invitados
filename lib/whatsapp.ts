@@ -82,10 +82,15 @@ const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string)
   {
     // Los novios lo mandaron con emojis a propósito; van tal cual.
     url: 'boda-perci-y-virsabit',
-    texto:
-      '¡Hola! ✨\n\n' +
-      'Después de tanto esperar este momento, por fin podemos compartirte nuestra invitación digital donde podrás encontrar todos los detalles de nuestra boda Cosis L❤️VE.\n\n' +
-      'Nos hará muy felices que nos acompañes en este día tan especial.',
+    texto: (nombre: string) =>
+      'Cosis L❤️VE | Invitación Oficial\n\n' +
+      `✨¡Hola! ${nombre}, Después de tantos capítulos compartidos, llega uno que merece celebrarse.\n\n` +
+      'El equipo editorial de Cosis Love te envía la invitación a la boda de Perci & Vir, una fecha especial que reúne años de historia en un día para recordar.\n\n' +
+      'A través del siguiente enlace podrás descargar tu invitación digital y descubrir cada sección, donde encontrarás los detalles que darán forma a esta celebración.\n\n' +
+      'Será un gusto contar contigo el próximo 8 de mayo del 2027.\n\n' +
+      'Cosis LOVE\n' +
+      'Una historia, un día, una celebración.\n' +
+      '#cosislove8',
   },
 ]
 
