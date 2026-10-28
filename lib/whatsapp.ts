@@ -8,9 +8,26 @@ export function normalizarTelefono(raw: string | null | undefined): string {
 
 // Enlace wa.me: con teléfono abre el chat de ese contacto; sin teléfono deja
 // que el usuario elija a quién enviar. El texto va URL-encoded.
+/**
+ * Quita emojis del texto que se manda por WhatsApp o se copia. En varios
+ * teléfonos llegan como "?" o un rombo con signo de interrogación, así que
+ * ningún mensaje (ni los que escriben los clientes) debe llevarlos.
+ * Respeta © ® ™ y deja los espacios y saltos de línea limpios.
+ */
+export function sinEmojis(texto: string): string {
+  return texto
+    .replace(/(?![\u00A9\u00AE\u2122])[\p{Extended_Pictographic}\u2661\u2662\u2664\u2667]/gu, '')
+    .replace(/[\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\uFE0F\uFE0E\u200D\u20E3]/gu, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[ \t]+([,.!?;:])/g, '$1')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n[ \t]+/g, '\n')
+    .trim()
+}
+
 export function waLink(telefono: string | null | undefined, texto: string): string {
   const tel = normalizarTelefono(telefono)
-  const q = encodeURIComponent(texto)
+  const q = encodeURIComponent(sinEmojis(texto))
   return tel ? `https://wa.me/${tel}?text=${q}` : `https://wa.me/?text=${q}`
 }
 
@@ -83,7 +100,7 @@ const MENSAJE_POR_EVENTO: Array<{ url: string; texto: string | ((nombre: string)
     // Los novios lo mandaron con emojis a propósito; van tal cual.
     url: 'boda-perci-y-virsabit',
     texto: (nombre: string) =>
-      'Cosis L❤️VE | Invitación Oficial\n\n' +
+      'Cosis LOVE | Invitación Oficial\n\n' +
       `✨¡Hola! ${nombre}, Después de tantos capítulos compartidos, llega uno que merece celebrarse.\n\n` +
       'El equipo editorial de Cosis Love te envía la invitación a la boda de Perci & Vir, una fecha especial que reúne años de historia en un día para recordar.\n\n' +
       'A través del siguiente enlace podrás descargar tu invitación digital y descubrir cada sección, donde encontrarás los detalles que darán forma a esta celebración.\n\n' +
