@@ -118,7 +118,7 @@ export function TelefonoInput({ value, onChange, id, inputClassName = '', inputS
           value={iso}
           onChange={e => cambiarPais(e.target.value)}
           className={`tel-pais appearance-none rounded-xl pl-3 pr-7 ${alto} text-sm font-medium focus:outline-none focus:ring-2 cursor-pointer`}
-          style={{ ...inputStyle, width: 98 }}
+          style={{ ...inputStyle, width: 98, color: 'transparent' }}
         >
           {PAISES.map(p => (
             <option key={p.iso} value={p.iso}>
