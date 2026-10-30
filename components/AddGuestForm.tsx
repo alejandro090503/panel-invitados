@@ -4,6 +4,7 @@ import { UserPlus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
 import { usePrefs } from '@/lib/prefs'
+import { TelefonoInput } from './TelefonoInput'
 
 interface Props {
   urlBoda: string
@@ -169,20 +170,16 @@ export function AddGuestForm({ urlBoda, onAdded, showMenores = false, nombresMod
         )}
 
         {/* WhatsApp del contacto (opcional) */}
-        <div className="w-full sm:w-44">
+        <div className="w-full sm:w-64">
           <label htmlFor="telefono" className="block text-[11px] font-medium mb-1.5 uppercase tracking-wider" style={{ color: 'var(--ink-2)' }}>
             WhatsApp
           </label>
-          <input
+          <TelefonoInput
             id="telefono"
-            type="tel"
-            inputMode="tel"
             value={telefono}
-            onChange={e => setTelefono(e.target.value)}
-            placeholder="52 55 1234 5678"
-            autoComplete="off"
-            className={INPUT_CLASS}
-            style={INPUT_STYLE}
+            onChange={setTelefono}
+            inputClassName={INPUT_CLASS}
+            inputStyle={INPUT_STYLE}
           />
         </div>
 

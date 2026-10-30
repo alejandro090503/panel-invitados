@@ -1,11 +1,12 @@
 'use client'
-import { useState } from 'react'
-import { Copy, Check, Trash2, Users, UserCheck, MessageCircle, Pencil, BellRing } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Copy, Check, Trash2, Users, UserCheck, MessageCircle, Pencil, BellRing, PhoneOff } from 'lucide-react'
 import type { Invitado, EstadoInvitado } from '@/lib/supabase'
 import { supabase } from '@/lib/supabase'
 import { waLink, mensajeInvitacion, mensajeRecordatorio, normalizarTelefono } from '@/lib/whatsapp'
 import { nombreYaExiste, avisoNombreDuplicado } from '@/lib/duplicados'
 import { usePrefs } from '@/lib/prefs'
+import { TelefonoInput } from './TelefonoInput'
 
 interface Props {
   invitado: Invitado
@@ -206,6 +207,17 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
   // Solo eventos con plantilla de recordatorio y solo invitaciones sin respuesta
   const textoRecordatorio = invitado.estado === 'pendiente' ? mensajeRecordatorio(invitado.nombre, link) : null
   const recordarHref = textoRecordatorio ? waLink(invitado.telefono, textoRecordatorio) : null
+
+  // Rebote de "no" cuando no hay número; se reinicia si vuelven a tocar.
+  const [negado, setNegado] = useState(false)
+  const negadoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  function negarWhatsApp() {
+    if (negadoTimer.current) clearTimeout(negadoTimer.current)
+    setNegado(false)
+    requestAnimationFrame(() => setNegado(true))
+    if (typeof navigator !== 'undefined' && 'vibrate' in navigator) { try { navigator.vibrate([18, 40, 18]) } catch {} }
+    negadoTimer.current = setTimeout(() => setNegado(false), 1800)
+  }
 
   async function copyLink() {
     await navigator.clipboard.writeText(link)
@@ -435,20 +447,18 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
                   autoFocus
                 />
               </label>
-              <label className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
                 <span className="block text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
                   {tr('WhatsApp (opcional)', 'WhatsApp (optional)')}
                 </span>
-                <input
-                  type="tel"
-                  inputMode="tel"
+                <TelefonoInput
                   value={editTelefono}
-                  onChange={(e) => setEditTelefono(e.target.value)}
-                  placeholder={tr('Ej. 5215512345678', 'e.g. 15125551234')}
-                  className="w-full px-3 py-1.5 rounded-lg text-sm outline-none"
-                  style={inputStyle}
+                  onChange={setEditTelefono}
+                  inputClassName="px-3 py-1.5 rounded-lg text-sm outline-none"
+                  inputStyle={inputStyle}
+                  compacto
                 />
-              </label>
+              </div>
             </div>
             {/* Modo nombres específicos: lista editable, uno por línea */}
             {tieneAsignados ? (
@@ -608,18 +618,33 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
       {/* Acciones */}
       {!editing && !aviso && (
         <div className={`flex items-center gap-2 shrink-0${recordarHref ? ' flex-wrap' : ''}`}>
-          <a
-            href={waHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={tieneTel ? tr(`Enviar invitación por WhatsApp a ${invitado.nombre}`, `Send invitation on WhatsApp to ${invitado.nombre}`) : tr('Compartir invitación por WhatsApp', 'Share invitation on WhatsApp')}
-            title={tieneTel ? tr(`Enviar por WhatsApp a ${invitado.telefono}`, `Send on WhatsApp to ${invitado.telefono}`) : tr('Compartir por WhatsApp (elige el contacto)', 'Share on WhatsApp (pick the contact)')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
-            style={{ background: 'rgba(37,211,102,0.12)', color: 'var(--ok-t2)', border: '1px solid rgba(37,211,102,0.32)' }}
-          >
-            <MessageCircle size={13} />
-            <span>WhatsApp</span>
-          </a>
+          {tieneTel ? (
+            <a
+              href={waHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={tr(`Enviar invitación por WhatsApp a ${invitado.nombre}`, `Send invitation on WhatsApp to ${invitado.nombre}`)}
+              title={tr(`Enviar por WhatsApp a ${invitado.telefono}`, `Send on WhatsApp to ${invitado.telefono}`)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-200 active:scale-95"
+              style={{ background: 'rgba(37,211,102,0.12)', color: 'var(--ok-t2)', border: '1px solid rgba(37,211,102,0.32)' }}
+            >
+              <MessageCircle size={13} />
+              <span>WhatsApp</span>
+            </a>
+          ) : (
+            /* Sin número no se abre WhatsApp: el botón rebota con un "no" y avisa */
+            <button
+              type="button"
+              onClick={negarWhatsApp}
+              aria-label={tr(`${invitado.nombre} no tiene WhatsApp. Agrégalo con el lápiz.`, `${invitado.nombre} has no WhatsApp. Add it with the pencil.`)}
+              title={tr('Sin WhatsApp: agrégalo con el lápiz', 'No WhatsApp: add it with the pencil')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium ${negado ? 'wa-negado' : 'wa-sin-numero transition-all duration-200'}`}
+              style={{ background: 'rgba(37,211,102,0.12)', color: 'var(--ok-t2)', border: '1px solid rgba(37,211,102,0.32)' }}
+            >
+              {negado ? <PhoneOff size={13} /> : <MessageCircle size={13} />}
+              <span>{negado ? tr('Sin número', 'No number') : 'WhatsApp'}</span>
+            </button>
+          )}
 
           {recordarHref && (
             <a

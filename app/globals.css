@@ -192,3 +192,30 @@ html.tema-anim, html.tema-anim *, html.tema-anim *::before, html.tema-anim *::af
 @media (hover: hover) { .prefs-btn:hover { background: rgba(168,138,75,0.12); } }
 .prefs-btn .prefs-ico { transition: transform .5s cubic-bezier(.2,.8,.2,1), opacity .3s; }
 html[data-theme="dark"] .prefs-btn .prefs-ico { transform: rotate(-30deg); }
+
+/* WhatsApp: el select de país muestra solo "MX +52" (lo pinta un span encima);
+   la lista abierta conserva el nombre completo del país. */
+.tel-pais { color: transparent; }
+.tel-pais option { color: var(--ink); background: rgb(var(--surface-rgb)); }
+
+/* Botón de WhatsApp sin número: rebote de "no" (sacude, se tiñe y se asienta) */
+@keyframes waNegado {
+  0%   { transform: translateX(0) scale(1); }
+  10%  { transform: translateX(-7px) rotate(-2deg) scale(1.03); }
+  24%  { transform: translateX(6px) rotate(1.6deg) scale(1.03); }
+  38%  { transform: translateX(-4.5px) rotate(-1deg); }
+  52%  { transform: translateX(3px) rotate(.6deg); }
+  66%  { transform: translateX(-1.6px); }
+  80%  { transform: translateX(.8px); }
+  100% { transform: translateX(0) scale(1); }
+}
+.wa-negado {
+  animation: waNegado .62s cubic-bezier(.36,.07,.19,.97) both;
+  background: rgba(184,80,66,0.12) !important;
+  color: var(--danger) !important;
+  border-color: rgba(184,80,66,0.45) !important;
+  box-shadow: 0 0 0 4px rgba(184,80,66,0.10);
+  transition: background .25s, color .25s, border-color .25s, box-shadow .4s;
+}
+.wa-sin-numero { opacity: .62; }
+@media (prefers-reduced-motion: reduce) { .wa-negado { animation: none; } }
