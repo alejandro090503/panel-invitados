@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
+import { esSoloAlbum } from '@/lib/soloAlbum'
 import { supabase } from '@/lib/supabase'
 import type { Boda } from '@/lib/supabase'
 import { PasswordGate } from '@/components/PasswordGate'
@@ -19,6 +20,9 @@ export default function PanelBoda() {
   const [album, setAlbum] = useState<InfoAlbum | null>(null)
   useEffect(() => { if (auth) infoAlbum(slug).then(setAlbum) }, [auth, slug])
   const { tr } = usePrefs()
+  const router = useRouter()
+  const soloAlbum = esSoloAlbum(slug)
+  useEffect(() => { if (auth && soloAlbum) router.replace(`/${slug}/album`) }, [auth, soloAlbum, slug, router])
 
   useEffect(() => {
     async function loadBoda() {
@@ -59,7 +63,7 @@ export default function PanelBoda() {
     )
   }
 
-  if (!boda || auth === null) {
+  if (!boda || auth === null || (auth && soloAlbum)) {
     return (
       <div className="min-h-dvh flex items-center justify-center">
         <div

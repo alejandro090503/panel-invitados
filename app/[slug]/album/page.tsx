@@ -6,6 +6,7 @@ import { ArrowLeft, Download, EyeOff, Eye, X, ChevronLeft, ChevronRight, ImageOf
 import { supabase, type Boda } from '@/lib/supabase'
 import { infoAlbum, urlPublica, fechaBonita, listarFotos, ocultarFoto, type InfoAlbum, type FotoAlbum } from '@/lib/album'
 import { usePrefs } from '@/lib/prefs'
+import { esSoloAlbum } from '@/lib/soloAlbum'
 
 type Foto = FotoAlbum
 
@@ -76,9 +77,11 @@ export default function AlbumNoviosPage() {
   return (
     <main className="min-h-dvh px-4 py-8 sm:px-6 lg:px-8">
       <div className="max-w-5xl mx-auto">
-        <Link href={`/${slug}`} className="inline-flex items-center gap-1.5 text-sm mb-4" style={{ color: 'var(--muted)' }}>
-          <ArrowLeft size={15} />{tr('Volver al panel', 'Back to panel')}
-        </Link>
+        {!esSoloAlbum(slug) && (
+          <Link href={`/${slug}`} className="inline-flex items-center gap-1.5 text-sm mb-4" style={{ color: 'var(--muted)' }}>
+            <ArrowLeft size={15} />{tr('Volver al panel', 'Back to panel')}
+          </Link>
+        )}
 
         <div className="glass rounded-3xl px-6 py-6 flex items-center justify-between gap-4 flex-wrap mb-6">
           <div>
