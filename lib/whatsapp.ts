@@ -121,6 +121,14 @@ const RECORDATORIO_POR_EVENTO: Array<{ url: string; texto: (nombre: string) => s
       `Hola, ${nombre}. Te recordamos que aún no recibimos tu confirmación para la boda de Valeria y Andrés. ` +
       'Nos ayudaría mucho que nos confirmes antes del 6 de febrero de 2027 en tu enlace personalizado:',
   },
+  {
+    // Texto de los novios, sin los emojis (en algunos WhatsApp salen como rombo)
+    url: 'boda-rosario-y-alejandro',
+    texto: () =>
+      '¡No olviden nuestra cita!\n\n' +
+      'Ya falta poquito para nuestra boda y estamos muy emocionados de compartir este día con ustedes. ' +
+      '¡Los esperamos para celebrar juntos este momento tan especial!',
+  },
 ]
 
 export function mensajeRecordatorio(nombre: string, link: string): string | null {
