@@ -195,8 +195,6 @@ export function GuestCard({ invitado, nombreBoda, showMenores = false, onDeleted
     || invitado.url_boda.includes('boda-adriana-y-alexis')
     || invitado.url_boda.includes('boda-marylen-y-jose-luis')
     || invitado.url_boda.includes('boda-jenny-y-benja')
-    || invitado.url_boda.includes('boda-celeste-hernandez-y-jose-silva')
-    || invitado.url_boda.includes('xv-amelie-flores-carvajal')
   // El token lleva el NOMBRE dentro: si el cliente renombra la invitación, el
   // link ya enviado deja de encontrarla y el invitado sigue viendo los datos
   // viejos. Con `?c=<id>` el link apunta a la fila y sobrevive al renombrado.
