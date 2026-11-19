@@ -129,6 +129,12 @@ const RECORDATORIO_POR_EVENTO: Array<{ url: string; texto: (nombre: string) => s
       'Ya falta poquito para nuestra boda y estamos muy emocionados de compartir este día con ustedes. ' +
       '¡Los esperamos para celebrar juntos este momento tan especial!',
   },
+  {
+    url: 'boda-luis-e-ivonne',
+    texto: (nombre: string) =>
+      `Hola, ${nombre}. Te recordamos que aún no recibimos tu confirmación para la boda de Ivonne y Luis. ` +
+      'Nos ayudaría mucho que nos confirmes antes del 20 de noviembre de 2026 en tu enlace personalizado:',
+  },
 ]
 
 export function mensajeRecordatorio(nombre: string, link: string): string | null {
