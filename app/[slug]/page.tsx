@@ -9,6 +9,12 @@ import { GuestList } from '@/components/GuestList'
 import { usePrefs } from '@/lib/prefs'
 import Link from 'next/link'
 import { Images } from 'lucide-react'
+
+/* Eventos que se pasaron al panel Celestial (QR): aquí ya no se gestiona nada,
+   solo se manda al panel nuevo. El álbum de fotos sigue viéndose aquí. */
+const MUDADOS_A_CELESTIAL: Record<string, string> = {
+  'ligia-y-guillermo': 'https://panel-invitados-qr.vercel.app/ligia-y-guillermo',
+}
 import { infoAlbum, type InfoAlbum } from '@/lib/album'
 
 export default function PanelBoda() {
@@ -121,7 +127,22 @@ export default function PanelBoda() {
       </div>
 
       <div className="max-w-4xl mx-auto">
-        <GuestList urlBoda={boda.url_boda} nombreBoda={boda.nombre} />
+        {MUDADOS_A_CELESTIAL[slug] ? (
+          <div className="glass rounded-3xl px-6 py-8 text-center space-y-4" role="status">
+            <p className="text-[10px] uppercase tracking-[0.22em]" style={{ color: 'var(--gold-t)' }}>{tr('Tu panel se mudó', 'Your panel has moved')}</p>
+            <h2 className="serif text-2xl font-semibold" style={{ color: 'var(--ink)' }}>{tr('Ahora usas el Panel Celestial', 'You now use the Celestial Panel')}</h2>
+            <p className="text-sm max-w-md mx-auto" style={{ color: 'var(--muted)' }}>
+              {tr('Todas tus invitaciones y confirmaciones ya están en tu panel nuevo, con la misma contraseña. Aquí ya no se registran confirmaciones: agrega, edita y envía tus invitaciones desde el panel Celestial.',
+                  'All your invitations and responses are already in your new panel, with the same password. Responses are no longer recorded here: add, edit and send your invitations from the Celestial panel.')}
+            </p>
+            <a href={MUDADOS_A_CELESTIAL[slug]} className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold"
+               style={{ background: 'var(--gold-t)', color: '#FFFFFF' }}>
+              {tr('Ir a mi Panel Celestial', 'Go to my Celestial Panel')}
+            </a>
+          </div>
+        ) : (
+          <GuestList urlBoda={boda.url_boda} nombreBoda={boda.nombre} />
+        )}
       </div>
 
       <p className="text-center text-xs mt-10" style={{ color: 'var(--gold-t)', opacity: 0.6 }}>
