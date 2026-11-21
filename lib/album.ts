@@ -54,6 +54,33 @@ export async function ocultarFoto(slug: string, clave: string, id: string, ocult
   if (error) throw new Error(error.message)
 }
 
+/* ── Historias: los invitados ven las fotos de los demás. Se activa POR EVENTO
+   con album_eventos.historias_desde; sin esa fecha la página se ve igual que siempre. */
+export interface InfoHistorias { activa: boolean; cancion: string | null; total: number }
+export interface FotoHistoria { id: string; path: string; thumb: string; invitado: string | null; oculto: boolean; created_at: string }
+
+export async function infoHistorias(slug: string): Promise<InfoHistorias | null> {
+  const { data, error } = await albumDb().rpc('album_historias_info', { p_slug: slug })
+  if (error || !data || !data.length) return null
+  const r = data[0]
+  return { activa: !!r.activa, cancion: r.cancion ?? null, total: Number(r.total) }
+}
+
+/** Sin `desde`: todas las visibles. Con `desde`: las nuevas y las que los novios ocultaron. */
+export async function listarHistorias(slug: string, desde?: string): Promise<FotoHistoria[]> {
+  const pagina = 1000 // tope de filas por respuesta de la API
+  const args = desde ? { p_slug: slug, p_desde: desde } : { p_slug: slug }
+  const fotos: FotoHistoria[] = []
+  for (let n = 0; n < 4; n++) { // el álbum admite hasta 3000 fotos
+    const { data, error } = await albumDb().rpc('album_historias', args).range(n * pagina, (n + 1) * pagina - 1)
+    if (error) throw new Error(error.message)
+    const filas = (data ?? []) as FotoHistoria[]
+    fotos.push(...filas)
+    if (filas.length < pagina) break
+  }
+  return fotos
+}
+
 /** Borra archivos y filas de los álbumes que ya cumplieron 3 semanas (lo corre el cron diario). */
 export async function limpiarExpirados(): Promise<{ archivos: number; albumes: number }> {
   const db = albumDb()

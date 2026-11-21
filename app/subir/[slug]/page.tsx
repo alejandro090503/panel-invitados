@@ -1,8 +1,9 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Camera, ImagePlus, Check, Clock, Lock, AlertCircle } from 'lucide-react'
-import { albumDb, infoAlbum, fechaBonita, type InfoAlbum } from '@/lib/album'
+import { Camera, ImagePlus, Check, Clock, Lock, AlertCircle, CirclePlay } from 'lucide-react'
+import { albumDb, infoAlbum, infoHistorias, fechaBonita, type InfoAlbum, type InfoHistorias } from '@/lib/album'
+import HistoriasAlbum from '@/components/HistoriasAlbum'
 import { usePrefs } from '@/lib/prefs'
 
 /** Reduce la foto en el celular antes de subirla: sube rápido aunque haya mala señal. */
@@ -30,11 +31,15 @@ export default function SubirFotosPage() {
   const [listas, setListas] = useState(0)
   const [errores, setErrores] = useState(0)
   const [aviso, setAviso] = useState<string | null>(null)
+  const [historias, setHistorias] = useState<InfoHistorias | null>(null)
+  const [viendo, setViendo] = useState<{ paths: string[]; nonce: number } | null>(null)
+  const [fallidas, setFallidas] = useState(0)
   const galeria = useRef<HTMLInputElement>(null)
   const camara = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     infoAlbum(slug).then(setInfo)
+    infoHistorias(slug).then(setHistorias)
     try { setNombre(localStorage.getItem('album_nombre') ?? '') } catch {}
   }, [slug])
 
@@ -48,6 +53,7 @@ export default function SubirFotosPage() {
     const db = albumDb()
     let ok = 0
     let mal = 0
+    const subidas: string[] = []
     for (const f of lista) {
       try {
         const [grande, mini] = await Promise.all([reducir(f, 2048, 0.82), reducir(f, 480, 0.72)])
@@ -60,6 +66,7 @@ export default function SubirFotosPage() {
         if (b.error) throw b.error
         const r = await db.rpc('album_registrar', { p_slug: slug, p_path: path, p_thumb: thumb, p_invitado: nombre })
         if (r.error) throw r.error
+        subidas.push(path)
         ok++
       } catch {
         mal++
@@ -71,6 +78,17 @@ export default function SubirFotosPage() {
     setSubiendo(null)
     if (galeria.current) galeria.current.value = ''
     if (camara.current) camara.current.value = ''
+    setFallidas(mal)
+    if (historias?.activa && ok > 0) {
+      setViendo({ paths: subidas, nonce: Date.now() })
+      infoHistorias(slug).then(setHistorias)
+    }
+  }
+
+  function cerrarHistorias() {
+    setViendo(null)
+    setFallidas(0)
+    infoHistorias(slug).then(setHistorias)
   }
 
   if (info === undefined) {
@@ -82,8 +100,19 @@ export default function SubirFotosPage() {
   }
 
   const cerrado = !info || info.estado !== 'abierto'
+  const verHistorias = historias?.activa && historias.total > 0 && (
+    <button
+      type="button"
+      onClick={() => setViendo({ paths: [], nonce: Date.now() })}
+      className="w-full inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[15px] font-semibold cursor-pointer"
+      style={{ border: '1.5px solid var(--gold-t)', color: 'var(--gold-t)', background: 'rgb(var(--surface-rgb) / 0.6)' }}
+    >
+      <CirclePlay size={19} />{tr('Ver las historias', 'View the stories')} ({historias.total})
+    </button>
+  )
 
   return (
+    <>
     <main className="min-h-dvh flex items-center justify-center px-4 py-10">
       <div className="glass rounded-3xl p-7 sm:p-9 w-full max-w-md animate-in text-center">
         <p className="text-[10px] uppercase tracking-[0.28em]" style={{ color: 'var(--gold-t)' }}>
@@ -116,11 +145,14 @@ export default function SubirFotosPage() {
                 </p>
               </>
             )}
+            {verHistorias && <div className="mt-5">{verHistorias}</div>}
           </div>
         ) : (
           <>
             <p className="mt-5 text-[15px]" style={{ color: 'var(--ink)' }}>
-              {tr('Comparte las fotos que tomaste. Los novios las recibirán todas.', 'Share the photos you took. The couple will receive them all.')}
+              {historias?.activa
+                ? tr('Comparte las fotos que tomaste. Todos los invitados podrán verlas en las historias.', 'Share the photos you took. All guests will be able to see them in the stories.')
+                : tr('Comparte las fotos que tomaste. Los novios las recibirán todas.', 'Share the photos you took. The couple will receive them all.')}
             </p>
 
             <label className="block text-left mt-6">
@@ -160,6 +192,7 @@ export default function SubirFotosPage() {
               >
                 <Camera size={18} />{tr('Tomar una foto', 'Take a photo')}
               </button>
+              {verHistorias}
             </div>
 
             <div aria-live="polite" className="mt-5 min-h-[44px]">
@@ -193,5 +226,18 @@ export default function SubirFotosPage() {
         <p className="text-xs mt-8" style={{ color: 'var(--gold-t)', opacity: 0.6 }}>© {new Date().getFullYear()} Elysium Invitaciones</p>
       </div>
     </main>
+    {viendo && (
+      <HistoriasAlbum
+        slug={slug}
+        cancion={historias?.cancion ?? null}
+        puedeSubir={!cerrado}
+        subiendo={subiendo}
+        fallidas={fallidas}
+        nuevas={viendo}
+        onAgregar={() => galeria.current?.click()}
+        onCerrar={cerrarHistorias}
+      />
+    )}
+    </>
   )
 }
