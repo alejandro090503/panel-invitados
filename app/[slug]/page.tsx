@@ -14,6 +14,7 @@ import { Images } from 'lucide-react'
    solo se manda al panel nuevo. El álbum de fotos sigue viéndose aquí. */
 const MUDADOS_A_CELESTIAL: Record<string, string> = {
   'ligia-y-guillermo': 'https://panel-invitados-qr.vercel.app/ligia-y-guillermo',
+  'boda-johanna-y-leonardo': 'https://panel-invitados-qr.vercel.app/boda-johanna-y-leonardo',
 }
 import { infoAlbum, type InfoAlbum } from '@/lib/album'
 
